@@ -1,0 +1,12 @@
+{
+	"name": "officemanager",
+	"authors": [
+		"Ivo Maffei"
+	],
+	"description": "Office Manager Program",
+	"copyright": "Copyright © 2018, Ivo Maffei",
+	"license": "proprietary",
+	"dependencies": {
+		
+	}
+}
