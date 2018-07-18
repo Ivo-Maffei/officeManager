@@ -8,22 +8,63 @@ class Login {
 	
 static:
 
-	private bool _admin = false; //is logged user admin?
+	private immutable(string[]) roles  = ["Admin", "User"];
+
+	private string _role = ""; //user role
 	private string _user = null;
 	//create hash of the password; this is what should be stored in files
-	private const(string) hashPassword(const string user, const string password) {
-		//use idea <user, h(g(user)|| password)>; g = ripemd160; h = sha-512 100 rounds;
-		import std.digest.sha: sha512Of, toHexString;
-		import std.digest.ripemd: ripemd160Of;
+	const(string) hashPassword(const string userName, immutable string role , const string password, const uint limit = 10000) {
+		/*
+			This is an implementation of SCRAM-SHA-1; At the bottom of the file there is a commment explaining the methods
+			this function should return StoredKey; i, password and salt should be inputs 
+			SaltedPassword  := Hi(Normalize(password), salt, i)
+			ClientKey       := HMAC(SaltedPassword, "Client Key")
+			StoredKey       := H(ClientKey)
+		*/
+		import std.digest.sha: SHA1, sha1Of;
+		import std.digest: toHexString;
+		import std.digest.hmac: hmac, HMAC;
+		import std.base64;
 		import std.string: representation;
 		
-		ubyte[20] salt = ripemd160Of(user);
-		ubyte[64] pass = sha512Of(salt ~ representation(password));  //representation returns immutable(ubyte)[]
-		foreach (i ; 0..99) { //iterate 99 times
-			pass = sha512Of(pass);
+		/*
+			salt is SHA-1(userName ~ role)
+		*/
+		bool found = false;
+		foreach( s; roles) {
+			if( role == s) {
+				found = true;
+				break;
+			}
+		}
+		if(!found ) {
+			throw new Exception("called hashPassword with a role not recognized");
 		}
 		
-		return pass.toHexString.dup;
+		auto salt =  sha1Of(userName~role);
+		ubyte[4] initializer = [0,0,0,1];
+		
+		immutable(ubyte[]) pass = password.representation;
+		ubyte[20] U = hmac!SHA1( (salt ~initializer), pass); //compute U1 = HMAC(pass, salt + INT(1))
+		ubyte[20] SaltedPassword = U;
+		auto mac = HMAC!SHA1(pass);
+		
+		for(uint i = 1; i< limit; ++i) { //at iteration i it computes Ui
+			mac.start();
+			mac.put(U);
+			U = mac.finish(); //Ui = HMAC(pass, Ui-1)
+			foreach( j; 0 .. 20) {
+				SaltedPassword[j] = SaltedPassword[j]^U[j];
+			}
+			
+		}
+		//at this point SaltedPassword = Hlimit(Normalize(password), salt, limit)
+		
+		ubyte[20] ClientKey = "Client Key".representation.hmac!SHA1(SaltedPassword);
+		
+		ubyte[20] StoredKey = sha1Of(ClientKey);
+		
+		return Base64.encode(StoredKey);
 	}
 	//read password file
 	private const(string) readPassFile() {
@@ -54,37 +95,25 @@ static:
 	}
 	//replace old password with new one on the password file
 	private void replacePassword(const string user, const string newPassword) {
-		string password = hashPassword(user, newPassword); //create hash password
+		string password = hashPassword(user,_role, newPassword); //create hash password
 		
 		// let's check if user was admin; if so we need to set this in new Password to say so
 		auto fileContent = readPassFile();
 		JSONValue file = parseJSON(fileContent);
-		password = addAdminToPassword(password, file[user].str[$-1] == 'A');
 		
 		//now write password in the file;
 		import std.array : replace;
 		auto newContent = fileContent.replace(file[user].str,password);
 		writePassFile(newContent); 
 	}
-	private const(string) addAdminToPassword (const string password, const bool admin ) {
-		if (admin) return password ~ 'A';
-		
-		import std.random: Random, unpredictableSeed, uniform;
-		
-		auto randomGenerator = Random(unpredictableSeed);
-		
-		size_t index = uniform(0 ,password.length, randomGenerator);
-		char l = password[index];
-		if( l == 'A') l= 'B';
-		return password ~ l;
-	}
+
 	
 	const(string) getUser() { return _user; }
-	const(bool) isAdmin() { return _admin;}
+	const(bool) isAdmin() { return _role == "Admin";}
 	
 	//log out
 	void logout() {
-		_admin = false;
+		_role = "";
 		_user = null;
 	}
 	
@@ -96,33 +125,36 @@ static:
 		JSONValue file = parseJSON(fileContent);
 		//user should be in the file since in Local we check that user is actually a user
 		
-		string filepass = file[user].str; //get whole string
-		char admin = filepass[$-1]; //get admin character
-		filepass = filepass[0..$-1]; //remove last character
-	
-		auto input= hashPassword(user, password);
+		string filepass = file[user].str; //get password
+		bool logged = false; //treu if log in is succesfull
+		foreach (role; roles){
+			auto input= hashPassword(user,role ,password);
+			if(filepass == input) {
+				logged = true;
+				_role = role.dup;
+			}
+		}
 		//check that passwords match
-		if(filepass != input) { //if login fails
+		if(!logged) { //if login fails
 			throw new PasswordException("login failed; passwords do not match; please sync to check the local file is up to date");
 		}
 		
 		_user = user;
-		_admin = admin == 'A';
 	}
 	
 	//change old password
 	void changePassword ( const string oldPassword, const string newPassword, const string user=_user) {
 		
-		if(user != _user && _admin == false) {
+		if(user != _user && isAdmin() == false) {
 			throw new PermissionException("to change password of another user, you need to be admin");
 		}
 		
 		//Local should ensure that the password file is updated
-		auto oldHash =  hashPassword(user, oldPassword);
+		auto oldHash =  hashPassword(user,_role, oldPassword);
 		
 		auto fileContent = readPassFile();
 		JSONValue file = parseJSON(fileContent);
-		if( oldHash != file[user].str[0..$-1]) {
+		if( oldHash != file[user].str) {
 			throw new PasswordException("old password seems to be incorrect");
 		}
 		
@@ -134,7 +166,7 @@ static:
 	//set new password if you forgot; need to be admin
 	void forgotPassword (const string user, const string newPassword){
 		//Local needs to ensure that password file contains user's information to change the password
-		if(_admin == false) {
+		if(isAdmin() == false) {
 			throw new PermissionException("you need to be an admin to reset a forgotten password");
 		}
 		
@@ -143,15 +175,14 @@ static:
 	}
 	
 	//create user- pass
-	void createUser( const string user , const string password, const bool admin = false) {
+	void createUser( const string user , const string password, const string role = "User") {
 		
-		if(_admin == false) {
+		if(isAdmin == false) {
 			throw new PermissionException("need to be admin to create user");
 		}
 		
 		//Local should check user is unique [need sync to do so]
-		
-		auto hash = addAdminToPassword(hashPassword(user, password),admin);
+		auto hash = hashPassword(user,role.idup, password);
 		auto fileContent = readPassFile();
 		
 		JSONValue json = parseJSON(fileContent);
@@ -169,7 +200,7 @@ static:
 			throw new Exception("cannot delete the current user");
 		}
 		
-		if(_admin == false) {
+		if(isAdmin() == false) {
 			throw new PermissionException("need to be admin to delete users");
 		}
 		
@@ -208,3 +239,102 @@ class PermissionException: Exception {
 		super(msg,file, line); //call constructor of Exception class
 	}
 }
+
+
+
+/*
+USING SCRAM-SHA-1 as the MongoDB does;
+
+MongoDB stores this info:
+
+{ 
+	"_id" : "officeManager.puci",
+	"user" : "puci",
+	"db" : "officeManager",
+	"credentials" : { 
+		"SCRAM-SHA-1" : { 
+			"iterationCount" : 10000,
+			"salt" : "sGTiovNDIMgbRalYe11BYg==",
+			"storedKey" : "T7xxFgkjW3bE8Z7z2p784Y5WC5w=",
+			"serverKey" : "SKdpPhBrddx++JGs6HAajnhwWRY="
+		},
+		"SCRAM-SHA-256" : { 
+			"iterationCount" : 15000,
+			"salt" : "xsa2vVO5TaUNKN6Fn+DtHcrhUoy6AXhqZ97eqQ==",
+			"storedKey" : "VDValFFtxv7DnDjKHayT5p4m79I8O1znG/rrdX63g+s=",
+			"serverKey" : "m220abV7rQKKUjUt2Qtwnp74iVUQHi0lqvbsauuVufQ="
+		}
+	},
+	"roles" : [ { "role" : "officeManagerAdmin", "db" : "officeManager" } ]
+}
+
+
+SCRAM Explanation:
+
+SaltedPassword  := Hi(Normalize(password), salt, i)
+ClientKey       := HMAC(SaltedPassword, "Client Key")
+StoredKey       := H(ClientKey)
+AuthMessage     := client-first-message-bare + "," +
+                    server-first-message + "," +
+                    client-final-message-without-proof
+ClientSignature := HMAC(StoredKey, AuthMessage)
+ClientProof     := ClientKey XOR ClientSignature
+ServerKey       := HMAC(SaltedPassword, "Server Key")
+ServerSignature := HMAC(ServerKey, AuthMessage)
+
+where
+
+Normalize(str): Apply the SASLprep profile [RFC4013] of the
+      "stringprep" algorithm [RFC3454] as the normalization algorithm to
+      a UTF-8 [RFC3629] encoded "str".  The resulting string is also in
+      UTF-8.  When applying SASLprep, "str" is treated as a "stored
+      strings", which means that unassigned Unicode codepoints are
+      prohibited (see Section 7 of [RFC3454]).  Note that
+      implementations MUST either implement SASLprep or disallow use of
+      non US-ASCII Unicode codepoints in "str".
+
+HMAC(key, str): Apply the HMAC keyed hash algorithm (defined in
+      [RFC2104]) using the octet string represented by "key" as the key
+      and the octet string "str" as the input string.  The size of the
+      result is the hash result size for the hash function in use.  For
+      example, it is 20 octets for SHA-1 (see [RFC3174]).
+      
+H(str): Apply the cryptographic hash function to the octet string
+      "str", producing an octet string as a result.  The size of the
+      result depends on the hash result size for the hash function in
+      use.
+      
+Hi(str, salt, i):
+
+     U1   := HMAC(str, salt + INT(1))
+     U2   := HMAC(str, U1)
+     ...
+     Ui-1 := HMAC(str, Ui-2)
+     Ui   := HMAC(str, Ui-1)
+
+     Hi := U1 XOR U2 XOR ... XOR Ui
+
+      where "i" is the iteration count, "+" is the string concatenation
+      operator, and INT(g) is a 4-octet encoding of the integer g, most
+      significant octet first.
+
+      Hi() is, essentially, PBKDF2 [RFC2898] with HMAC() as the
+      pseudorandom function (PRF) and with dkLen == output length of
+      HMAC() == output length of H().
+
+
+
+HMAC explained
+
+	H = hash function
+	B = byte-length of block input for H
+	K = key zero padded to reach length B;
+		if too long apply H and then zero pad
+	text = data
+ 	ipad = the byte 0x36 repeated B times
+	opad = the byte 0x5C repeated B times.
+
+	HMAC = H(K XOR opad + H(K XOR ipad + text))
+
+
+*/
