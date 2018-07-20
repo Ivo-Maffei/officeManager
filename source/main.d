@@ -13,8 +13,4 @@ void main()
 	writeln("dummyUser sessions: ", SyncServer.getUserSessions("dummyUser"));
 	writeln("puci sessions: ", SyncServer.getUserSessions("puci"));*/
 	
-	import LogIn;
-	SyncServer.connect("127.0.0.1","puci","1234");
-	SyncServer.deleteUser("dummy");
-	
 }

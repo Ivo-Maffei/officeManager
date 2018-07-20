@@ -1,4 +1,12 @@
 module Local;
+/*
+
+	Program Interface;
+	
+	The GUI should only should only use this class to perform operations.
+	
+	The Local class puts together all other modules
+*/
 
 import Sessions;
 import Categories;
@@ -422,162 +430,8 @@ static: //this makes the all the member static
 //----------------------------------------------------------------------------------------
 
 //LOGIN-LOGOUT USER HANDLING--------------------------------------------------------------
-/*
-	//logout
-	void logout() {
-		writeln("logging out...");
-		//stop all active sessions
-		writeln("stopping active sessions...");
-		foreach( ref tup; activeSessions) {
-			stopSession(tup[0]);
-		}
-		
-		//sync and sava stuff
-		
-		//reset fields
-		activeSessions = null;
-		userSessions = null;
-		
-		Login.logout;//logout
-	}
+
 	
-	//login
-	Outcome login(const string user, const string password) { //return tuple, if first is false, second is a message why login failed
-	
-		//first let's logout if necessary
-		if( Login.getUser() != null) logout();
-		
-		//then log in
-		import std.algorithm: filter;
-		
-		//this if statement should be removed when sync is implemented
-		if(users.filter!(x => x == user).empty) {
-			return tuple(false,"user does not exists locally; sync if necessary");
-		}
-		
-		//check that local copy  of password database contains user [sync with server]
-		
-		try {
-			Login.login(user, password); //if this throws exception, catch it and return false
-		} catch (PasswordException e) {
-			return tuple(false,"password is wrong; if you don't think so, sync with server");
-		} catch (PassFileException e) {
-			return tuple(false,"password database seems corrupted; please try again");
-		}
-		
-		//sync to get userSessions;
-		
-		return tuple(true,"login completed");
-	}
-	
-	//change password
-	Outcome changePassword( const string oldPassword, const string newPassword, const string user = Login.getUser()) {
-		
-		if(newPassword.length >= 44) { //this because otherwise the password is longer than its hash [not great]
-			throw new Warning("To improve security the password should be less or equal to 44 characters");
-		}
-		
-		import std.algorithm: filter;
-		//this if statement should be removed when sync is implemented
-		if(users.filter!(x => x == user).empty) {
-			return tuple(false,"user does not exists locally; sync if necessary");
-		}
-		
-		//sync with server to get user into passFile
-		
-		try {
-			Login.changePassword(oldPassword,newPassword, user);
-		} catch (PasswordException e) {
-			return tuple(false,e.message);
-		} catch (PassFileException e) {
-			return tuple(false,e.message);
-		} catch (PermissionException e) {
-			return tuple(false,e.message);
-		}
-	
-		//sync again
-		
-		return tuple(true,"password changed");
-	}
-	
-	//reset a forgotten password.
-	Outcome forgotPassword(const string user, const string newPassword) {
-		
-		import std.algorithm: filter;
-		//this if statement should be removed when sync is implemented
-		if(users.filter!(x => x == user).empty) {
-			return tuple(false,"user does not exists locally; sync if necessary");
-		}
-		
-		//sync to ensure local file is ok
-		
-		try {
-			Login.forgotPassword(user,newPassword);
-		} catch (PassFileException e) {
-			return tuple(false,e.message);
-		} catch (PermissionException e) {
-			return tuple(false,e.message);
-		}
-		
-		//sync again
-		
-		return tuple(true,"password reset successful");
-	}
-	
-	//create new user 
-	Outcome createUser(const string user, const string password) {
-		
-		//the below needs to be removed when sync is implemented
-		import std.algorithm: filter;
-		if(!users.filter!(x => x == user).empty) {
-			throw new Exception(user~" is not a user");
-		}
-		//check user is unique via sync
-		
-		try {
-			Login.createUser(user,password);
-		} catch (PermissionException e) {
-			return tuple(false,e.message);
-		} catch (PassFileException e) {
-			return tuple(false,e.message);
-		}
-		
-		//sync 
-		//add new user to array of users. the code is to delete after implementing sync
-		users ~= user;
-		return tuple(true,"new user created");
-	}
-	
-	//delete a user
-	Outcome deleteUser(const string user) {
-		//the below needs to be removed when sync is implemented
-		import std.algorithm: filter;
-		if(users.filter!(x => x == user).empty) {
-			throw new Exception(user~" does not exists");
-		}
-		
-		//check user exists on server
-		try {
-			Login.deleteUser(user);
-		} catch (PermissionException e) {
-			return tuple(false,e.message);
-		} catch (PassFileException e) {
-			return tuple(false, e.message);
-		}
-		
-		//delete user from server; sync
-		
-		size_t index;
-		for(index=0; index<users.length; ++index) {
-			if(users[index]== user) {
-				import std.algorithm: remove;
-				users = users.remove(index);
-				break;
-			}
-		}
-		return tuple(true, user ~" deleted");
-	}
-	*/
 //----------------------------------------------------------------------------------------
 
 //SYNC CALENDAR---------------------------------------------------------------------------

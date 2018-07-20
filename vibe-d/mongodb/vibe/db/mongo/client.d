@@ -32,7 +32,7 @@ import std.range;
 final class MongoClient {
 @safe:
 
-	private {
+	public {
 		ConnectionPool!MongoConnection m_connections;
 	}
 
@@ -40,6 +40,14 @@ final class MongoClient {
 	{
 		this("mongodb://" ~ host ~ ":" ~ to!string(port) ~ "/?safe=true");
 	}
+
+
+	void disconnect(){
+		foreach (con ; m_connections.m_connections) {
+			con.disconnect();
+		}
+	}
+
 
 	/**
 		Initializes a MongoDB client using a URL.

@@ -1,5 +1,10 @@
 module LogIn;
 
+/*
+	This module handles all info about users, roles and passwords.
+	The info are all stored locally. To sync this info with the server ServerSide should be used
+*/
+
 import Utility;
 
 class Login {
@@ -12,8 +17,7 @@ static:
 
 	private string _role = ""; //user role
 	private string _user = null;
-	//create hash of the password; this is what should be stored in files
-	const(string) hashPassword(const string userName, immutable string role , const string password, const uint limit = 10000) {
+	private ubyte[20] scramSHA1(const ubyte[] salt, const string data, const uint limit = 10000) {
 		/*
 			This is an implementation of SCRAM-SHA-1; At the bottom of the file there is a commment explaining the methods
 			this function should return StoredKey; i, password and salt should be inputs 
@@ -22,29 +26,12 @@ static:
 			StoredKey       := H(ClientKey)
 		*/
 		import std.digest.sha: SHA1, sha1Of;
-		import std.digest: toHexString;
 		import std.digest.hmac: hmac, HMAC;
-		import std.base64;
 		import std.string: representation;
 		
-		/*
-			salt is SHA-1(userName ~ role)
-		*/
-		bool found = false;
-		foreach( s; roles) {
-			if( role == s) {
-				found = true;
-				break;
-			}
-		}
-		if(!found ) {
-			throw new Exception("called hashPassword with a role not recognized");
-		}
-		
-		auto salt =  sha1Of(userName~role);
 		ubyte[4] initializer = [0,0,0,1];
 		
-		immutable(ubyte[]) pass = password.representation;
+		immutable(ubyte[]) pass = data.representation;
 		ubyte[20] U = hmac!SHA1( (salt ~initializer), pass); //compute U1 = HMAC(pass, salt + INT(1))
 		ubyte[20] SaltedPassword = U;
 		auto mac = HMAC!SHA1(pass);
@@ -64,8 +51,9 @@ static:
 		
 		ubyte[20] StoredKey = sha1Of(ClientKey);
 		
-		return Base64.encode(StoredKey);
+		return StoredKey;
 	}
+	
 	//read password file
 	private const(string) readPassFile() {
 		import std.file: readText, exists, isFile;
@@ -95,7 +83,7 @@ static:
 	}
 	//replace old password with new one on the password file
 	private void replacePassword(const string user, const string newPassword) {
-		string password = hashPassword(user,_role, newPassword); //create hash password
+		string password = hashPassword(user, newPassword); //create hash password
 		
 		// let's check if user was admin; if so we need to set this in new Password to say so
 		auto fileContent = readPassFile();
@@ -103,13 +91,40 @@ static:
 		
 		//now write password in the file;
 		import std.array : replace;
-		auto newContent = fileContent.replace(file[user].str,password);
+		auto newContent = fileContent.replace(file[user]["pwd"].str,password);
 		writePassFile(newContent); 
 	}
 
 	
 	const(string) getUser() { return _user; }
 	const(bool) isAdmin() { return _role == "Admin";}
+	
+	//create hash of the password; this is what should be stored in files
+	const(string) hashPassword(const string userName, const string password) {
+		
+		import std.digest.sha: sha1Of;
+		import std.base64;
+		
+		/*
+			salt is SHA-1(userName)
+		*/
+		
+		auto salt =  sha1Of(userName);
+		return Base64.encode(scramSHA1(salt, password));
+		
+	}
+	const(string) hashRole(const string userName, const string role) {
+		import std.digest.sha: sha1Of;
+		import std.base64;
+		
+		/*
+			salt is SHA-1(userName~secret)
+		*/
+		string secret = "w5L./9Eh-?sw!eZ"; //if you don't know this you can't generate a correct hash of the role
+		auto salt =  sha1Of(userName~secret);
+		return Base64.encode(scramSHA1(salt, role, 20000));
+	}
+	
 	
 	//log out
 	void logout() {
@@ -125,41 +140,38 @@ static:
 		JSONValue file = parseJSON(fileContent);
 		//user should be in the file since in Local we check that user is actually a user
 		
-		string filepass = file[user].str; //get password
-		bool logged = false; //treu if log in is succesfull
-		foreach (role; roles){
-			auto input= hashPassword(user,role ,password);
-			if(filepass == input) {
-				logged = true;
-				_role = role.dup;
-			}
-		}
-		//check that passwords match
-		if(!logged) { //if login fails
+		string filepass = file[user]["pwd"].str; //get password
+
+		if(filepass != hashPassword(user ,password)) {
 			throw new PasswordException("login failed; passwords do not match; please sync to check the local file is up to date");
 		}
-		
+
 		_user = user;
-	}
-	
-	//change old password
-	void changePassword ( const string oldPassword, const string newPassword, const string user=_user) {
-		
-		if(user != _user && isAdmin() == false) {
-			throw new PermissionException("to change password of another user, you need to be admin");
+		_role = null;
+		foreach (ref role; roles) {
+			if(file[user]["role"].str == hashRole(user,role))
+				_role = role;
 		}
 		
+		if( _role is null) {
+			throw new PassFileException("Cannot find role which matches the hash on the pass file. Maybe the file is corrupted");
+		}
+	}
+	
+	//change own old password
+	void changePassword ( const string oldPassword, const string newPassword) {
+		
 		//Local should ensure that the password file is updated
-		auto oldHash =  hashPassword(user,_role, oldPassword);
+		auto oldHash =  hashPassword(_user, oldPassword);
 		
 		auto fileContent = readPassFile();
 		JSONValue file = parseJSON(fileContent);
-		if( oldHash != file[user].str) {
+		if( oldHash != file[_user]["pwd"].str) {
 			throw new PasswordException("old password seems to be incorrect");
 		}
 		
 		//if we reach this point, then oldPassword is correct.
-		replacePassword(user, newPassword);
+		replacePassword(_user, newPassword);
 		//now local should sync
 	}
 	
@@ -182,11 +194,12 @@ static:
 		}
 		
 		//Local should check user is unique [need sync to do so]
-		auto hash = hashPassword(user,role.idup, password);
+		auto hash = hashPassword(user, password);
+		auto roleHash = hashRole(user,role);
 		auto fileContent = readPassFile();
 		
 		JSONValue json = parseJSON(fileContent);
-		json.object[user] = JSONValue(hash); //add pair user : hash to the json
+		json.object[user] = (`{ "role": `~roleHash~`, "pwd" : ` ~hash~`}`).parseJSON; //add pair user : hash to the json
 		
 		writePassFile(json.toPrettyString);
 		
@@ -212,6 +225,19 @@ static:
 		
 		writePassFile(json.toPrettyString);
 		
+	}
+	
+	//change user role
+	void changeRole(const string user, const string newRole) {
+		if(_role != "Adim") {
+			throw new PermissionException("Need to be admin to change roles");
+		}
+		
+		auto file = readPassFile.parseJSON;
+		
+		file[user]["role"] = hashRole(user,newRole);
+		
+		writePassFile(file.toPrettyString);
 	}
 	
 }

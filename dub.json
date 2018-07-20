@@ -9,6 +9,9 @@
 	"dependencies": {
 		"vibe-d": {
 			"path" : "vibe-d/"
+		},
+		"vibe-core" : {
+			"path" : "vibe-core-1.4.1/"
 		}
 	}
 }

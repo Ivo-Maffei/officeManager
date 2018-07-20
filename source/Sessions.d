@@ -9,7 +9,7 @@ private:
 	string _dateTime; //start of the session
 	string _duration = "00:00"; //hh:mm
 	// ushort _cost =0; this for tantums see below
-	Category _category; //category of the session
+	string _category; //category of the session
 	string _user; //user of the session
 	ulong _projID; //project the session belongs to
 	ulong _sessionID; //session ID (may be equal to project ID)
@@ -23,7 +23,7 @@ public:
 	
 	string description; //user notes
 	
-	this(const ulong projID, const string user, const string description = "", Category category = Category.NoneCategory, const string date = "none", const ulong id=0) {
+	this(const ulong projID, const string user, const string description = "", const Category category = Category.NoneCategory, const string date = "none", const ulong id=0) {
 	
 		import std.datetime.systime; 
 		import std.range: take; 
@@ -38,7 +38,7 @@ public:
 			this.changeDateTime( date);
 		}
 	
-		this._category = category; //assign category
+		this._category = category.name; //assign category
 	
 		this.description = description; //assign description
 	
@@ -106,9 +106,9 @@ public:
 	}
 	
 	//category
-	const(Category) category() const { return _category; }
-	void changeCategory (Category category) {
-		this._category = category;
+	const(string) category() const { return _category; }
+	void changeCategory (const Category category) {
+		this._category = category.name;
 	}
 	
 	//user session

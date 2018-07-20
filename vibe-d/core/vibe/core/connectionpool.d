@@ -40,6 +40,12 @@ class ConnectionPool(Connection)
 	}
 
 
+	public void disconnect() {
+		foreach(con; m_connections) {
+			con.disconnect();
+		}
+	}
+
 	this(Connection delegate() @safe connection_factory, uint max_concurrent = uint.max)
 	{
 		m_connectionFactory = connection_factory;
