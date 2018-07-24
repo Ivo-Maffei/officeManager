@@ -11,6 +11,7 @@ module Local;
 import Sessions;
 import Categories;
 import Projects;
+import Sync;
 import LogIn;
 
 import std.datetime.stopwatch : StopWatch, AutoStart;
@@ -23,10 +24,9 @@ alias Outcome = const(Tuple!(bool,string));
 class Local {
 static: //this makes the all the member static
 
-	private string[] users; //slice containing all possible users [only admin can access this]
 	private Session[] userSessions; //slice of user sessions
 	private Tuple!(Session, StopWatch)[] activeSessions; //list of all active sessions and their watches
-	//SyncObject to synchronize
+	private string _host; //string containing the host specified in the settings
 	//settings object
 	//object to make reports and fatture
 	
@@ -76,11 +76,9 @@ static: //this makes the all the member static
 		throw new Exception("can't find the category with the given name");
 	}
 
-	static this() {
-		//sync and fetch users list, projects and categories
-		//look at local files for settings
-		users ~="me";
-	
+	void initialise(){
+		DB.syncAll; //need to have logged in before this
+		//get _host and all settings
 	}
 	
 //GET  METHODS ---------------------------------------------------------------------------
@@ -92,7 +90,7 @@ static: //this makes the all the member static
 	
 	//all users
 	const(string[]) getAllUsers()  {
-		return users;
+		return Login.getUsers;
 	}
 	
 	//get userSessions
@@ -187,6 +185,9 @@ static: //this makes the all the member static
 		//remove from active session
 		import std.algorithm: remove;
 		activeSessions = activeSessions.remove(index);
+		
+		//update database
+		DB.newSession(myTuple[0]);
 	}
 	void stopSession(const ulong sessionID, const string user = Login.getUser()) {
 		auto session = findSession(sessionID, user);
@@ -213,6 +214,9 @@ static: //this makes the all the member static
 			//check with SQL if session is unique and add it to the according list
 		}
 		assert(session !is null); //if we reach this point a session should have been created
+		
+		//update db
+		DB.newSession(session);		
 		
 		return session.ID;
 		
@@ -243,9 +247,12 @@ static: //this makes the all the member static
 			}
 			
 			
-		} else { //must be admin
-			//do sql stuff
-		}
+		} 
+		
+		//thi function is called with tantums as arguments so:
+		Tantum tan = cast(Tantum) session;
+		if( tan !is null) DB.deleteTantum(tan);
+		else DB.deleteSession(session);
 	}
 	//delete session with sessionID
 	void deleteSession (const ulong sessionID, const string user = Login.getUser()) {
@@ -262,7 +269,7 @@ static: //this makes the all the member static
 		
 		if(user != null && Login.isAdmin) {
 			
-			if( users.filter!( us => us == user).empty) { //there is no such user
+			if( Login.getUsers.filter!( us => us == user).empty) { //there is no such user
 				throw new Exception("setting a session to a non-existing user");
 			}
 			if(session.user == Login.getUser() && user != Login.getUser()){ //this session will no loger belong to the current user
@@ -285,6 +292,9 @@ static: //this makes the all the member static
 		if(description != null) session.description = description;
 		
 		if(category !is null) session.changeCategory(category);
+		
+		if( is (session: Tantum) ) DB.updateTantum(session, session.ID);
+		else DB.updateSession(session,session.ID);
 	}
 	//edit session with sessionID and session's user
 	void editSession (const ulong sessionID, const string sessionUser ,const ulong projID = 0 ,const string user = null ,const string date = null, const string duration = null, const string description = null, Category category = null) {
@@ -312,6 +322,8 @@ static: //this makes the all the member static
 			tantum = new Tantum(projID, user,cost, tax, description, category, date, id);
 			userSessions ~= tantum;
 		}
+		
+		DB.newTantum(tantum);
 		
 		return tantum.ID;
 	}
@@ -357,15 +369,19 @@ static: //this makes the all the member static
 	//create project
 	const(ulong) createProject(const string name, const ushort jobNumber=0, const bool sync = false, const string notes="", const ulong id=0){
 		auto proj = new Project(name, jobNumber, sync, notes, id);
+		
+		DB.newProject(proj);
 		return proj.ID;
 	}
 	
 	//delete project
 	void deleteProject(const ulong projID) {
 		Project.deleteProject(projID);
+		DB.deleteProject(findProject(projID));
 	}
 	void deleteProject(const Project pro){
 		Project.deleteProject(pro.ID);
+		DB.deleteProject(pro);
 	}
 	
 	//edit project
@@ -374,6 +390,7 @@ static: //this makes the all the member static
 		if(name != null) proj.changeName(name);
 		if(notes != null) proj.note = notes;
 		proj.changeSync(sync);
+		DB.updateProject(proj, proj.ID);
 	}
 	void editProject(const ulong projID, const string name = null, const string notes =null) {
 		auto proj = findProject(projID);
@@ -399,23 +416,28 @@ static: //this makes the all the member static
 	//create category
 	const(string) createCategory(const string  name, const ushort feriale =0, const ushort  festivo =0, const string  color="black") {
 		auto cat = new Category(name, feriale, festivo, color);
+		DB.newCategory(cat);
 		return cat.name();
 	}
 	
 	//delete category
 	void deleteCategory(const Category cat) {
 		Category.deleteCategory(cat.name);
+		DB.deleteCategory(cat);
 	}
 	void deleteCategory(const string nameID) {
 		Category.deleteCategory(nameID);
+		DB.deleteCategory(findCategory(nameID));
 	}
 	
 	//edit category
 	void editCategory(Category cat,  const ushort feriale , const ushort  festivo ,const string  name = null, const string  color=null) {
+		string oldName = cat.name();
 		if (name != null) cat.changeName(name);
 		if (color != null) cat.changeColor(color);
 		cat.changeCostoFeriale(feriale);
 		cat.changeCostoFestivo(festivo);	
+		DB.updateCategory( cat, oldName);
 	}
 	void editCategory(const string nameID, const string  name = null, const string color = null) {
 		auto cat = findCategory(nameID);
@@ -431,6 +453,43 @@ static: //this makes the all the member static
 
 //LOGIN-LOGOUT USER HANDLING--------------------------------------------------------------
 
+	private string doTryCommand (const string command, const string okMessage) {
+		return "try{\n
+			"~command~";\n
+		} catch (Exception e) {\n
+			return tuple(false, cast(string)e.message); //e.message is const(char)[] and string is immutable(char)[]\n
+		}\n
+		\n
+		return tuple(true,\""~okMessage~"\");";
+	}
+
+	Outcome login(const string user , const string password) {
+		mixin( doTryCommand("DB.login(user, password, _host)", "login successful"));
+	}
+	
+	void logout() {
+		DB.logout();
+	}
+	
+	Outcome createUser( const string userName, const string password, const string role) {
+		mixin( doTryCommand("DB.createUser(userName, password, role)","User created") );
+	}
+	
+	Outcome deleteUser( const string userName) {
+		mixin(doTryCommand("DB.deleteUser(userName)", "User deleted"));
+	}
+	
+	Outcome changeOwnPassword( const string oldPassword, const string newPassword) {
+		mixin(doTryCommand("DB.changeOwnPassword(oldPassword,newPassword)", "Password changed"));
+	}
+	
+	Outcome forgotPassword(const string user, const string newPassword) {
+		mixin(doTryCommand("DB.forgotPassword(user, newPassword)", "Password changed"));
+	}
+	
+	Outcome changeRole(const string user, const string newRole) {
+		mixin(doTryCommand("DB.changeRole(user,newRole)", "Role changed"));
+	}
 	
 //----------------------------------------------------------------------------------------
 
@@ -479,7 +538,7 @@ static: //this makes the all the member static
 		//writeln(executeShell("ls"));
 		auto sync = executeShell(program);
 		
-		import std.stdio;
+		//import std.stdio;
 		//writeln(sync);
 		
 		//return with error if there is an error
@@ -531,10 +590,6 @@ static: //this makes the all the member static
 //----------------------------------------------------------------------------------------
 
 //REPORTS-FATTURE MAKING------------------------------------------------------------------
-
-//----------------------------------------------------------------------------------------
-	
-//SYNC with SERVER------------------------------------------------------------------------
 
 //----------------------------------------------------------------------------------------
 	

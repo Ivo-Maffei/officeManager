@@ -147,6 +147,10 @@ static:
 		systemClient = null;
 	}
 	
+	bool isConnected() {
+		return !(_mongoClient is null);
+	}
+	
 	
 //PROJECTS HANDLING-----------------------------------------------------------------------
 

@@ -95,9 +95,12 @@ static:
 		writePassFile(newContent); 
 	}
 
-	
+	//get methods
 	const(string) getUser() { return _user; }
 	const(bool) isAdmin() { return _role == "Admin";}
+	const(string[]) getUsers() {
+		return jsonEntries(readPassFile);
+	}
 	
 	//create hash of the password; this is what should be stored in files
 	const(string) hashPassword(const string userName, const string password) {
@@ -192,8 +195,11 @@ static:
 		if(isAdmin == false) {
 			throw new PermissionException("need to be admin to create user");
 		}
-		
-		//Local should check user is unique [need sync to do so]
+		import std.algorithm: filter;
+		import std.range: empty;
+		if( ! getUsers.filter!(x => x == user).empty) {
+			throw new Exception("user already exists");
+		}
 		auto hash = hashPassword(user, password);
 		auto roleHash = hashRole(user,role);
 		auto fileContent = readPassFile();

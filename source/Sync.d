@@ -225,13 +225,11 @@ static:
 	
 	void login(const string user, const string password, const string host) {
 	
-		static bool first = true; //if it is the first time we need to connect to server; otherwise just log-in
-		
-		if(first) {
-			SyncServer.connect(host, user, password);
-		} else {
-			//log in on _mongoClient somehow
+		if( SyncServer.isConnected) {
+			throw new Exception("Please disconnect before connecting");
 		}
+		
+		SyncServer.connect(host, user, password);
 		
 		getPasswords(); //sync local password db
 		
@@ -299,12 +297,24 @@ static:
 		
 	}
 	
+	const(string[]) getUsers() {
+		getPasswords(); //sync users
+		return Login.getUsers();
+	}
+	
 	
 //----------------------------------------------------------------------------------------
 
 	//sync all projects, categories, sessions and users
-	void syncAll(){
-	
+	void syncAll(const bool user=true){
+		SyncServer.syncProjects();
+		SyncServer.syncCategories();
+		SyncServer.syncSessions();
+		getPasswords();
+		if( user) getUserSessions();
+		else getAllSessions();
+		getCategories();
+		getProjects();
 	}
 
 }
