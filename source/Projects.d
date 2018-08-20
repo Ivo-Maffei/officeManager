@@ -21,13 +21,13 @@ private:
 		import std.range: take;
 		string snumber = to!string(number);
 		snumber = to!string("00000".take(5-snumber.length)) ~ snumber;
-		return ("[" ~ snumber ~ "] " ~ name);
+		return ("[" ~ snumber ~ "] - " ~ name);
 	}
 	
 	bool uniqueName(const string attempt) const { //helper function to check whether the name of the project is unique
 		import std.algorithm: filter; 
 		
-		return projects.filter!(proj => (proj.name == attempt)).empty;
+		return projects.filter!(proj => (proj.name == attempt && proj.ID != this._ID)).empty;
 	}
 	
 public:
@@ -119,6 +119,10 @@ public:
 	const(bool) sync() const {return this._sync; }
 	void changeSync(const bool sync) {
 		this._sync = sync;
+	}
+	
+	static void resetProjects() {
+		projects = [];
 	}
 	
 }

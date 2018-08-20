@@ -97,7 +97,7 @@ public:
 	const(string) duration() const { return _duration; }
 	void changeDuration(string duration) {
 		import std.regex: ctRegex, matchFirst;
-		auto expression = ctRegex!(r"\b[0-9][0-9]?:[0-5][0-9]?");
+		auto expression = ctRegex!(r"\b[0-9][0-9]:[0-5][0-9]\b");
 		auto match = matchFirst(duration, expression);
 		if(match.empty) { //no match found
 			throw new Exception("setting a duration, which doesn't match the regex hh:mm");
@@ -139,10 +139,10 @@ class Tantum : Session {
 	private ushort _cost; //costo in centesimi
 	private bool _taxable;
 	
-	this(const ulong ID, const string user, const ushort cost =0, bool tax = false, const string description ="", Category category = Category.NoneCategory, const string date = "none", const ulong sessionID =0) {
+	this(const ulong ID, const string user, const ushort cost =0, bool tax = false, const string description ="", const Category category = Category.NoneCategory, const string date = "none", const ulong sessionID =0) {
 	
 		this._cost = cost; //set the cost
-		this._taxable = false;
+		this._taxable = tax;
 		super(ID,user,description, category, date, sessionID); //initialize all the over stuff
 		
 		_duration ="none";

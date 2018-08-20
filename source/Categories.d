@@ -11,12 +11,14 @@ private:
 	ushort _Cost_Festivo; //costo per ora in centesimi
 	static Category[] categories; //list of all categories
 	static Category _NoneCategory;  //empty category used when user does not define a category
+	static immutable(string[]) colors;
 public:
 	static Category NoneCategory() {return _NoneCategory; }
 	static this () { //initialise static members
+		colors = [ "Nero", "Bianco", "Blu", "Rosso", "Verde", "Giallo", "Arancione", "Viola"];
 		_NoneCategory = new Category("None");
 	}
-	this(const string  name, const ushort feriale =0, const ushort  festivo =0, const string  color="black") { //constructor
+	this(const string  name, const ushort feriale =0, const ushort  festivo =0, const string  color="Nero") { //constructor
 		this.changeName(name); //check and change name
 		this.changeColor(color); //check and change color
 		this._Cost_Feriale = feriale;
@@ -52,8 +54,8 @@ public:
 	const(string) color() const { return _Color;}
 	void changeColor(const string color) {
 		import std.algorithm: filter;
-		if (!categories.filter!( cat => cat.color == this._Color).empty ) {//there is another category with the same color
-			throw new Exception("This color is already assigned to another category");
+		if(colors.filter!(c => c == color).empty) { //this color is not allowed
+			throw new Exception("This color is not in the list of possible colors");
 		}
 		this._Color = color;	
 	}
@@ -75,4 +77,11 @@ public:
 		return categories;
 	}
 	
+	static void resetCategories() {
+		categories = [_NoneCategory];
+	}
+	
+	static const(string[]) getColors() {
+		return colors.dup;
+	}
 }

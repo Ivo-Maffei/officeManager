@@ -9,6 +9,7 @@
 	"dependencies": {
 		"vibe-d": {
 			"path" : "vibe-d/"
-		}
+		},
+		"dlangui" : "~master"
 	}
 }

@@ -99,7 +99,12 @@ static:
 	const(string) getUser() { return _user; }
 	const(bool) isAdmin() { return _role == "Admin";}
 	const(string[]) getUsers() {
-		return jsonEntries(readPassFile);
+		string[] result;
+		foreach( ref s; jsonEntries(readPassFile)) {
+			if(s != "_id") result ~= s;
+		}
+		
+		return result;
 	}
 	
 	//create hash of the password; this is what should be stored in files
@@ -137,6 +142,7 @@ static:
 	
 	//log in
 	void login(const string user, const string password) {
+		import std.stdio;
 		
 		auto fileContent = readPassFile();
 		
@@ -152,8 +158,10 @@ static:
 		_user = user;
 		_role = null;
 		foreach (ref role; roles) {
-			if(file[user]["role"].str == hashRole(user,role))
+			if(file[user]["role"].str == hashRole(user,role)) {
 				_role = role;
+				writeln("########################## role is : " , _role);
+			}
 		}
 		
 		if( _role is null) {
@@ -162,18 +170,8 @@ static:
 	}
 	
 	//change own old password
-	void changePassword ( const string oldPassword, const string newPassword) {
+	void changePassword ( const string newPassword) {
 		
-		//Local should ensure that the password file is updated
-		auto oldHash =  hashPassword(_user, oldPassword);
-		
-		auto fileContent = readPassFile();
-		JSONValue file = parseJSON(fileContent);
-		if( oldHash != file[_user]["pwd"].str) {
-			throw new PasswordException("old password seems to be incorrect");
-		}
-		
-		//if we reach this point, then oldPassword is correct.
 		replacePassword(_user, newPassword);
 		//now local should sync
 	}
@@ -205,7 +203,7 @@ static:
 		auto fileContent = readPassFile();
 		
 		JSONValue json = parseJSON(fileContent);
-		json.object[user] = (`{ "role": `~roleHash~`, "pwd" : ` ~hash~`}`).parseJSON; //add pair user : hash to the json
+		json.object[user] = (`{ "role": "`~roleHash~`", "pwd" : "` ~hash~`"}`).parseJSON; //add pair user : hash to the json
 		
 		writePassFile(json.toPrettyString);
 		
@@ -235,7 +233,7 @@ static:
 	
 	//change user role
 	void changeRole(const string user, const string newRole) {
-		if(_role != "Adim") {
+		if(_role != "Admin") {
 			throw new PermissionException("Need to be admin to change roles");
 		}
 		
@@ -244,6 +242,26 @@ static:
 		file[user]["role"] = hashRole(user,newRole);
 		
 		writePassFile(file.toPrettyString);
+	}
+	
+	//get implemented roles
+	const(string[]) getRoles() { return roles.dup; }
+	
+	//get user role
+	const(string) getUserRole() {
+		return _role;
+	}
+	
+	//get role of a user
+	const(string) getUserRole(const string user) {
+		auto content = parseJSON(readPassFile());
+		string roleHash = content[user]["role"].str;
+		foreach( ref r; roles ) {
+			if( hashRole(user, r) == roleHash)
+				return r;
+		}
+		
+		throw new Exception("cannot find role of given user");
 	}
 	
 }

@@ -3,7 +3,13 @@
 	"versions": {
 		"botan": "1.12.10",
 		"botan-math": "1.0.3",
+		"derelict-ft": "1.1.3",
+		"derelict-gl3": "1.0.24",
+		"derelict-sdl2": "2.0.2",
+		"derelict-util": "2.0.6",
 		"diet-ng": "1.5.0",
+		"dlangui": "0.9.178",
+		"dsfml": "2.1.1",
 		"eventcore": "0.8.35",
 		"libasync": "0.8.3",
 		"libevent": "2.0.2+2.0.16",
@@ -13,6 +19,7 @@
 		"stdx-allocator": "2.77.2",
 		"taggedalgebraic": "0.10.11",
 		"vibe-core": "1.4.1",
-		"vibe-d": {"path":"vibe-d/"}
+		"vibe-d": {"path":"vibe-d/"},
+		"x11": "1.0.20"
 	}
 }

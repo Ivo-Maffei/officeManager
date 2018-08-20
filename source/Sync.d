@@ -21,8 +21,8 @@ static:
 	private ushort sessionLimit = 30; //this set the limit of how many sessions changes before syncing with the server
 	private ushort sessionCount =0;
 
-	private void syncNewObj(T) (const T obj, const bool syncRemote) {
-		
+	private void syncNewObj(T) (const T obj, bool syncRemote) {
+		if(offline) syncRemote = false;
 		static if (is(T : Project)) {
 			SyncLocal.newProject(obj);
 			if(syncRemote) SyncServer.syncProjects();
@@ -39,7 +39,8 @@ static:
 			throw new Exception("unknown type");
 		}
 	}
-	private void syncUpdateObj(T, S) (const T obj, const S oldId, const bool syncRemote) {
+	private void syncUpdateObj(T, S) (const T obj, const S oldId,  bool syncRemote) {
+		if(offline) syncRemote = false;
 		static if (is(T : Project)) {
 			SyncLocal.updateProject(obj, oldId);
 			if(syncRemote) SyncServer.syncProjects();
@@ -56,11 +57,15 @@ static:
 			throw new Exception("unknown type");
 		}
 	}
-	private void syncDeleteObj(T) (const T obj, const bool syncRemote) {
-		
+	private void syncDeleteObj(T) (const T obj,  bool syncRemote) {
+		if(offline) syncRemote = false;
 		static if (is(T : Project)) {
 			SyncLocal.deleteProject(obj.ID);
-			if(syncRemote) SyncServer.syncProjects();
+			if(syncRemote) {
+				SyncServer.syncProjects();
+				SyncServer.syncSessions();//we also delete all sessions associated with this project
+			}
+			
 		} else static if (is (T : Category)) {
 			SyncLocal.deleteCategory(obj.name);
 			if(syncRemote) SyncServer.syncCategories();
@@ -94,6 +99,8 @@ static:
 		}
 	}
 
+	bool offline = true; //need to change this
+
 //PROJECTS HANDLING-----------------------------------------------------------------------
 
 	void newProject(const Project pr) {
@@ -109,6 +116,9 @@ static:
 	}
 	
 	void getProjects() {
+		if( offline) {
+			throw new Exception("cannot sync because we're offline");
+		}
 		//this override any changes not synced with the remote
 		import std.file:readText;
 
@@ -116,6 +126,11 @@ static:
 
 		JsonListToFile(SyncServer.getProjects(),SyncLocal.projectsDB);
 		
+	}
+	
+	void syncProjects(const bool applyChanges = true) {
+		if(applyChanges) SyncServer.syncProjects(); //apply local changes to remote
+		getProjects(); //get remote stuff to local
 	}
 
 //----------------------------------------------------------------------------------------
@@ -135,12 +150,20 @@ static:
 	}
 	
 	void getCategories(){
+		if( offline) {
+			throw new Exception("cannot sync because we're offline");
+		}
 		//this override any changes not synced with the remote
 		import std.file:readText;
 
 		if( readText(SyncLocal.categoriesSyncDB) != "") throw new Exception("local changes are will be lost if you sync");
 
 		JsonListToFile(SyncServer.getCategories(),SyncLocal.categoriesDB);
+	}
+	
+	void syncCategories(const bool applyChanges = true) {
+		if(applyChanges) SyncServer.syncCategories(); //apply local changes to remote
+		getCategories(); //get remote stuff to local
 	}
 	
 //----------------------------------------------------------------------------------------
@@ -151,39 +174,63 @@ static:
 		++sessionCount;
 		//we sync the remote only sessionLimit times
 		if (sessionCount < sessionLimit) syncNewObj(obj,false);
-		else syncNewObj(obj,true);
+		else {
+			syncNewObj(obj,true);
+			sessionCount =0;
+		}
 	}
 	
 	void updateSession(const Session obj, const ulong oldId) {
 		++sessionCount;
 		//we sync the remote only sessionLimit times
 		if (sessionCount < sessionLimit) syncUpdateObj(obj,oldId,false);
-		else syncUpdateObj(obj, oldId,true);
+		else {
+			syncUpdateObj(obj, oldId,true);
+			sessionCount =0;
+		}
 	}
 	
 	void deleteSession(const Session obj) {
 		++sessionCount;
 		//we sync the remote only sessionLimit times
 		if (sessionCount < sessionLimit) syncDeleteObj(obj,false);
-		else syncDeleteObj(obj,true);
+		else {
+			syncDeleteObj(obj,true);
+			sessionCount =0;
+		}
 	}
 	
 	void getUserSessions(){
+		getSessions(Login.getUser);
+	}
+	
+	void getSessions(const string user) {
+		if( offline) {
+			throw new Exception("cannot sync because we're offline");
+		}
 		//this override any changes not synced with the remote
 		import std.file:readText;
 
 		if( readText(SyncLocal.sessionsSyncDB) != "") throw new Exception("local changes are will be lost if you sync");
 
-		JsonListToFile(SyncServer.getUserSessions(Login.getUser),SyncLocal.sessionsDB);
+		JsonListToFile(SyncServer.getUserSessions(user),SyncLocal.sessionsDB);
 	}
 	
 	void getAllSessions() {
+		if( offline) {
+			throw new Exception("cannot sync because we're offline");
+		}
 		//this override any changes not synced with the remote
 		import std.file:readText;
 
 		if( readText(SyncLocal.sessionsSyncDB) != "") throw new Exception("local changes are will be lost if you sync");
 
 		JsonListToFile(SyncServer.getAllSessions(),SyncLocal.sessionsDB);
+	}
+	
+	void syncSessions(const string user = Login.getUser, const bool applyChanges = true) {
+		if(applyChanges) SyncServer.syncSessions(); //apply local changes to remote
+		getSessions(user); //get remote stuff to local
 	}
 
 //----------------------------------------------------------------------------------------
@@ -193,11 +240,11 @@ static:
 	void newTantum(const Tantum obj) {
 		++sessionCount;
 		//we sync the remote only sessionLimit times
-		if (sessionCount < sessionLimit) syncNewObj(obj,false);
-		else syncNewObj(obj,true);
+		if (sessionCount < sessionLimit) syncNewObj!Tantum(obj,false);
+		else syncNewObj!Tantum(obj,true);
 	}
 	
-	void updateTantum(const Session obj, const ulong oldId) {
+	void updateTantum(const Tantum obj, const ulong oldId) {
 		++sessionCount;
 		//we sync the remote only sessionLimit times
 		if (sessionCount < sessionLimit) syncUpdateObj(obj,oldId,false);
@@ -229,19 +276,20 @@ static:
 			throw new Exception("Please disconnect before connecting");
 		}
 		
-		SyncServer.connect(host, user, password);
-		
-		getPasswords(); //sync local password db
+		if(!offline) {
+			SyncServer.connect(host, user, password);
+			getPasswords(); //sync local password db
+		}
 		
 		Login.login(user, password);
 	
 	}
 	
-	void changeOwnPassword ( const string oldPassword, const string newPassword) {
+	void changeOwnPassword ( const string newPassword) {
 		
 		getPasswords();
 		
-		Login.changePassword(oldPassword,newPassword);
+		Login.changePassword(newPassword);
 		SyncServer.changePassword(Login.getUser, newPassword, Login.hashPassword(Login.getUser,newPassword));
 	}
 	
@@ -257,8 +305,8 @@ static:
 	}
 	
 	void createUser( const string user , const string password, const string role = "User") {
+
 		getPasswords();
-		
 		if(!Login.isAdmin) throw new PermissionException("need to be admin to create user");
 		Login.createUser(user,password, role);
 		
@@ -283,6 +331,9 @@ static:
 	}
 
 	void getPasswords(){
+		if( offline) {
+			throw new Exception("cannot sync because we're offline");
+		}
 		auto json = SyncServer.getPasswords();
 		
 		import std.file: exists, isFile, write, append;
@@ -298,6 +349,9 @@ static:
 	}
 	
 	const(string[]) getUsers() {
+		if( offline) {
+			throw new Exception("cannot sync because we're offline");
+		}
 		getPasswords(); //sync users
 		return Login.getUsers();
 	}
@@ -307,14 +361,16 @@ static:
 
 	//sync all projects, categories, sessions and users
 	void syncAll(const bool user=true){
-		SyncServer.syncProjects();
-		SyncServer.syncCategories();
-		SyncServer.syncSessions();
-		getPasswords();
-		if( user) getUserSessions();
-		else getAllSessions();
-		getCategories();
-		getProjects();
+		if(!offline) {
+			SyncServer.syncProjects();
+			SyncServer.syncCategories();
+			SyncServer.syncSessions();
+			getPasswords();
+			if( user) getUserSessions();
+			else getAllSessions();
+			getCategories();
+			getProjects();
+		}
 	}
 
 }

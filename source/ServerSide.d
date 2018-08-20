@@ -60,6 +60,8 @@ static:
 	}
 	private void syncFile(idType)(const string collection, const string path) {
 	
+		import std.conv: to;
+		
 		auto file = readFile(path);
 		
 		foreach( ref json; file) { //for each JSONValue in the file
@@ -77,7 +79,10 @@ static:
 				case "update":
 					command["update"] = collection;
 					idType oldId;
-					static if(is(idType : ulong)) oldId = json["oldId"].uinteger; 	//uinteger can represent any unsigned integral type
+					static if(is(idType : ulong)) {
+						if(json["oldId"].type == JSON_TYPE.UINTEGER) oldId = json["oldId"].uinteger; //uinteger can represent unsigned integral which cannot be long
+						else oldId = to!ulong(json["oldId"].integer); //integer catches all integral that can be long
+					} 
 					else if(is (idType : string)) oldId = json["oldId"].str;		//this static if is resolved at compile time
 					else throw new SyncException(parseJSON("{}"), "undefined type for oldId");
 					
@@ -90,7 +95,10 @@ static:
 				case "remove":
 					command["delete"] = collection;
 					idType id;
-					static if( is (idType : ulong)) id = json["_id"].uinteger; 	//uinteger can represent any unsigned integral type
+					static if( is (idType : ulong)) {
+						if(json["_id"].type == JSON_TYPE.UINTEGER) id = json["_id"].uinteger; 	//uinteger can represent unsigned integral which cannot be long
+						else id = to!ulong(json["_id"].integer);
+					}
 					else if(is (idType : string)) id = json["_id"].str;			//this static if is resolved at compile time
 					else throw new SyncException(parseJSON("{}"), "undefined type for id");
 					command["deletes"] = [Bson([
@@ -115,7 +123,6 @@ static:
 	private MongoClient systemClient = null;
 	private string _host = null;
 	private immutable {
- 		string systemDB;
  		string projectsDB;
  		string categoriesDB;
  		string sessionsDB;
@@ -124,7 +131,6 @@ static:
  	static this() {
  		import LocalSide;
  		
- 		systemDB = SyncLocal.systemSyncDB;
  		projectsDB = SyncLocal.projectsSyncDB;
  		categoriesDB = SyncLocal.categoriesSyncDB;
  		sessionsDB = SyncLocal.sessionsSyncDB;
@@ -140,10 +146,10 @@ static:
 	
 	void disconnect() {
 		
-		_mongoClient.disconnect();
+		if(_mongoClient !is null) _mongoClient.disconnect();
 		_mongoClient = null;
 		_host = null;
-		systemClient.disconnect();
+		if(systemClient !is null) systemClient.disconnect();
 		systemClient = null;
 	}
 	
@@ -257,6 +263,8 @@ static:
 	
 	const(JSONValue) createUser(const string userName, const string role, const string roleHash, const string password, const string passHash) {
 		
+		import std.stdio;
+		
 		if(_mongoClient is null) {
 			throw new Exception("please; connect and log in first");
 		}
@@ -273,6 +281,7 @@ static:
 		JSONValue response = parseJSON(bson.toString);
 		
 		if(response["ok"].integer != 1) { //not good
+			writeln("######################## database did not created user");
 			return response;
 		}
 		

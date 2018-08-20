@@ -21,8 +21,7 @@ static:
 		are handled by the LogIn module
 	*/
 	
-	immutable {
- 		string systemDB;
+	immutable {;
  		string projectsDB;
  		string categoriesDB;
  		string sessionsDB;
@@ -40,7 +39,6 @@ static:
 		projectsSyncDB = localDB ~"ProjectsSync.db";
 		categoriesSyncDB = localDB~"CategoriesSync.db";
 		sessionsSyncDB = localDB~"SessionsSync.db";
-		systemDB = localDB ~"System.db";
 		projectsDB = localDB ~"Projects.db";
 		categoriesDB = localDB~"Categories.db";
 		sessionsDB = localDB~"Sessions.db";
@@ -49,8 +47,7 @@ static:
 	
 	//convert an object (proj/cate/sess/tantum) to a JSONValue
 	private JSONValue createJson(Type) (const Type obj) {
-		JSONValue json;
-		
+		JSONValue json = parseJSON("{}");
 		
 		static if( is (Type : Project)) {
 			json.object["_id"] = obj.ID();
@@ -58,19 +55,13 @@ static:
 			json.object["number"] = obj.jobNumber();
 			json.object["sync"] = obj.sync();
 			json.object["archived"] = false;
+			json.object["notes"] = obj.note;
 		} else {}
 		
 		static if ( is (Type : Category)){
 			json.object["_id"] = obj.name();
 			json.object["color"] = obj.color();
 		} else  { }
-		
-		static if( is( Type : Tantum)) {
-			json.object["tantum"] = true;
-			json.object["cost"]  = obj.cost();
-			json.object["taxable"] = obj.taxable();
-			//the rest will be matched by the following if
-		} else { }
 		
 		static if ( is (Type: Session)) {
 			json.object["_id"] = obj.ID();
@@ -79,6 +70,15 @@ static:
 			json.object["category"] = obj.category();
 			json.object["user"] = obj.user();
 			json.object["project"] = obj.projectID();
+			json.object["description"] = obj.description;
+			json.object["tantum"] = false;
+		} else { }
+		
+		static if( is( Type : Tantum)) {
+			json.object["tantum"] = true;
+			json.object["cost"]  = obj.cost();
+			json.object["taxable"] = obj.taxable();
+			//the rest will be matched by the part above
 		} else { }
 		
 		return json;
@@ -88,7 +88,7 @@ static:
 		import std.file: append, exists, isFile;
 		
 		if( !path.exists || !path.isFile) {
-			throw new CorruptedFileException("There is an error with the local database.");
+			throw new CorruptedFileException("Appending to File.  There is an error with the local database.");
 		}
 		
 		append(path, "\n"~buffer~"\n");
@@ -98,6 +98,7 @@ static:
 	private void removeJson(T) (const string path, const T id) {
 		import std.file: readText, exists, isFile, write;
 		import Utility;
+		import std.conv: to;
 		
 		if( !path.exists || !path.isFile) {
 			throw new CorruptedFileException("There is an error with the local database.");
@@ -110,7 +111,8 @@ static:
 		foreach (s ; splitJson(fileContent)){ //go through each json and look for the one to replace
 			auto j = parseJSON(s);
 			static if ( is (T : ulong)) { //static if is resolved at compile time
-				if( j["_id"].uinteger == id) {
+				ulong jsonId = j["_id"].type == JSON_TYPE.UINTEGER ?  j["_id"].uinteger : to!ulong(j["_id"].integer);
+				if( jsonId == id) {
 					continue;
 				}
 			} else if ( is (T: string)) {
@@ -148,8 +150,27 @@ static:
 	
 	void deleteProject(const ulong projectID) {
 		import std.conv: to;
+		import std.file: readText;
+		import Utility: splitJson;
 		
 		removeJson(projectsDB, projectID);
+		
+		//now delete all sessions associated with this project
+		auto content = readText(sessionsDB);
+		foreach( ref s; splitJson(content)) {
+			auto j = parseJSON(s);
+			ulong projID;
+			if( j["project"].type == JSON_TYPE.UINTEGER) projID = j["project"].uinteger;
+			else projID = to!ulong(j["project"].integer);
+			if(projID == projectID) {
+				ulong sesID;
+				if(j["_id"].type == JSON_TYPE.UINTEGER) sesID = j["_id"].uinteger;
+				else sesID = to!ulong(j["_id"].integer);
+				if(j["tantum"].type == JSON_TYPE.TRUE) deleteTantum(sesID);
+				else deleteSession(sesID);
+			}
+		}
+		
 		appendToFile(projectsSyncDB,`{ "_id" : `~to!string(projectID)~`, "status" : "remove"}` );
 	}
 
@@ -175,7 +196,7 @@ static:
 	
 	void deleteCategory(const string name) {
 		removeJson(categoriesDB, name);
-		appendToFile(categoriesSyncDB, `{"_id" : `~name~`, "status" : "remove"}`);
+		appendToFile(categoriesSyncDB, `{"_id" : "`~name~`", "status" : "remove"}`);
 	
 	}
 	
@@ -187,7 +208,6 @@ static:
 		auto c = createJson(obj);
 		appendToFile(sessionsDB, c.toPrettyString);
 		c.object["status"] = "new";
-		c.object["tantum"] = false;
 		appendToFile(sessionsSyncDB, c.toPrettyString);
 	}
 	
@@ -197,7 +217,6 @@ static:
 		appendToFile(sessionsDB,c.toPrettyString);
 		c.object["oldId"] = oldId;
 		c.object["status"] = "update";
-		c.object["tantum"] = false;
 		appendToFile(sessionsSyncDB,c.toPrettyString);
 	}
 	
@@ -214,20 +233,18 @@ static:
 //TATUM HANDLING--------------------------------------------------------------------------
 
 	void newTantum(const Tantum obj) {
-		auto c = createJson(obj);
+		auto c = createJson!Tantum(obj);
 		appendToFile(sessionsDB, c.toPrettyString);
 		c.object["status"] = "new";
-		c.object["tantum"] = true;
 		appendToFile(sessionsSyncDB, c.toPrettyString);
 	}
 	
-	void updateTantum(const Session obj, const ulong oldId) {
-		auto c = createJson(obj);
+	void updateTantum(const Tantum obj, const ulong oldId) {
+		auto c = createJson!Tantum(obj);
 		removeJson(sessionsDB,oldId);
 		appendToFile(sessionsDB,c.toPrettyString);
 		c.object["oldId"] = oldId;
 		c.object["status"] = "update";
-		c.object["tantum"] = true;
 		appendToFile(sessionsSyncDB,c.toPrettyString);
 	}
 	

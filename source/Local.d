@@ -13,11 +13,11 @@ import Categories;
 import Projects;
 import Sync;
 import LogIn;
+import Utility;
 
 import std.datetime.stopwatch : StopWatch, AutoStart;
 import std.typecons: Tuple, tuple;
-
-import std.stdio;
+import std.json;
 
 alias Outcome = const(Tuple!(bool,string));
 
@@ -27,6 +27,7 @@ static: //this makes the all the member static
 	private Session[] userSessions; //slice of user sessions
 	private Tuple!(Session, StopWatch)[] activeSessions; //list of all active sessions and their watches
 	private string _host; //string containing the host specified in the settings
+	private string settingsFile;
 	//settings object
 	//object to make reports and fatture
 	
@@ -75,10 +76,93 @@ static: //this makes the all the member static
 		}
 		throw new Exception("can't find the category with the given name");
 	}
+	private void createObjectsFromJson(T) (const string[] jsons) {
+		import std.json;
+		import std.conv: to;
+		import std.stdio;
+		
+		foreach (ref s ; jsons ) {
+			JSONValue json = parseJSON(s);
+			static if ( is ( T: Project)) {
+				ulong _id; //json["_id"] will be interpreted as signed integer is less than long.max
+				if(json["_id"].type == JSON_TYPE.UINTEGER) {
+					_id = json["_id"].uinteger;
+				} else {
+					_id = to!ulong(json["_id"].integer);
+				}
+				new Project( json["name"].str, to!ushort(json["number"].integer), json["sync"].type == JSON_TYPE.TRUE, json["notes"].str,_id);
+			} else static if( is (T: Category)) {
+				new Category(json["_id"].str, 0,0, json["color"].str);
+			} else static if( is (T: Session)) {
+				if(json["user"].str != Login.getUser) continue;
+				userSessions ~= createSessionFromJson(json);
+			} else {
+				throw new Exception("unknown type");
+			}
+		}
+	}
+	private Session createSessionFromJson( const JSONValue json) {
+		import std.conv: to;
+		
+		ulong proj; //json["project"] will be interpreted as signed integer is less than long.max
+		if(json["project"].type == JSON_TYPE.UINTEGER) {
+			proj = json["project"].uinteger;
+		} else {
+			proj = to!ulong(json["project"].integer);
+		}
+		
+		ulong _id; //json["_id"] will be interpreted as signed integer is less than long.max
+		if(json["_id"].type == JSON_TYPE.UINTEGER) {
+			_id = json["_id"].uinteger;
+		} else {
+			_id = to!ulong(json["_id"].integer);
+		}
+		
+		if(json["tantum"].type == JSON_TYPE.TRUE) {
+			return new Tantum(proj, json["user"].str, to!ushort(json["cost"].integer) ,json["taxable"].type == JSON_TYPE.TRUE, json["description"].str, findCategory(json["category"].str), json["dateTime"].str, _id);
+		} else {
+			auto s =  new Session(proj, json["user"].str, json["description"].str, findCategory(json["category"].str), json["dateTime"].str, _id);
+			s.changeDuration(json["duration"].str);
+			return s;
+		}
+		
+	}
+	private bool _offline = true;
+	
+	@property bool offline() { return _offline; }
+	@property bool offline(bool value) { 
+		DB.offline = value;
+		_offline = value;
+		return _offline;
+	}
+
+	static this() {
+	
+		import std.file: readText;
+		import Utility;
+		
+		//get _host and all settings
+		settingsFile = getCurrentPath() ~ "settings";
+		auto json = parseJSON(readText(settingsFile));
+		_host = json["host"].str;
+	}
 
 	void initialise(){
+		DB.offline = _offline;
 		DB.syncAll; //need to have logged in before this
-		//get _host and all settings
+		//now local database is synced; so we need to create the objects
+		import std.file: readText;
+		import LocalSide;
+		import Utility;
+		//create projects
+		createObjectsFromJson!Project(splitJson(readText(SyncLocal.projectsDB)));
+		
+		//create categories
+		createObjectsFromJson!Category(splitJson(readText(SyncLocal.categoriesDB)));
+		
+		//create sessions and tantums
+		createObjectsFromJson!Session(splitJson(readText(SyncLocal.sessionsDB)));
+		
 	}
 	
 //GET  METHODS ---------------------------------------------------------------------------
@@ -88,14 +172,52 @@ static: //this makes the all the member static
 		return Login.getUser();
 	}
 	
+	//current role
+	const(string) getCurrentRole() { 
+		return Login.getUserRole();
+	}
+	
+	//get role of a given user
+	const(string) getRole(const string user) {
+		return Login.getUserRole(user);
+	}
+	
 	//all users
 	const(string[]) getAllUsers()  {
 		return Login.getUsers;
 	}
 	
+	//get implemented roles
+	const(string[]) getRoles() {
+		return Login.getRoles();
+	}
+	
 	//get userSessions
 	const(Session[]) getUserSessions()  {
 		return userSessions;
+	}
+	
+	//get session of specific user 
+	const(Session[]) getSessions(const string user) {
+		if(!offline) DB.getSessions(user);
+		
+		Session[] result;
+		
+		//now get from file
+		import LocalSide;
+		import std.file: readText;
+		import Utility: splitJson;
+		
+		auto jsons = splitJson(readText(SyncLocal.sessionsDB));
+		foreach( ref s ; jsons) {
+			auto json = parseJSON(s);
+			if(json["user"].str == user) {
+				result ~= createSessionFromJson(json);
+			}
+		}
+		
+		return result;
+		
 	}
 	
 	//get active sessions
@@ -113,6 +235,11 @@ static: //this makes the all the member static
 		return Category.getCategories();
 	}
 	
+	//get colors that can be assigned to categories
+	const(string[]) getCategoriesColors() {
+		return Category.getColors();
+	}
+	
 	//get session from id
 	const(Session) getSession(const ulong sessionID, const string user = Login.getUser()) {
 		return findSession(sessionID, user);
@@ -128,9 +255,25 @@ static: //this makes the all the member static
 		return findProject(projID);
 	}
 	
+	//get projId from project name
+	const(ulong) getProjectId(const string name) {
+		auto projects = Project.getProjects();
+		foreach( ref proj; projects) {
+			if( proj.name == name) return proj.ID;
+		}
+		throw new Exception("Cannot find project with the given name");
+	}
+	
 	//get Category from id
 	const(Category) getCategory(const string nameID) {
 		return findCategory(nameID);
+	}
+	
+	//return if session is an active session
+	const(bool) isActiveSession(const ulong sesID) {
+		import std.algorithm: filter;
+		
+		return !(activeSessions.filter!(t => t[0].ID == sesID).empty);
 	}
 
 //----------------------------------------------------------------------------------------
@@ -138,7 +281,7 @@ static: //this makes the all the member static
 //SESSION HANDLING------------------------------------------------------------------------
 
 	//create a Session, a stopwatch and start the watch; returns the session ID
-	const(ulong) startSession(const ulong projID, const string description = "", Category category = Category.NoneCategory) {
+	const(ulong) startSession(const ulong projID, const string description = "", const Category category = Category.NoneCategory) {
 		import std.algorithm : filter;
 	
 		if ( ! activeSessions.filter!(tup => tup[0].projectID ==projID).empty) { //if there is another session for the same project
@@ -198,7 +341,7 @@ static: //this makes the all the member static
 	}
 	
 	//create a Session to add manually; returns the session ID
-	const(ulong) createSession (const ulong projID, const string date,const string user = Login.getUser(), const string description = "", Category category = Category.NoneCategory, const ulong id = 0) {
+	const(ulong) createSession (const ulong projID, const string date, const string user = Login.getUser(), const string description = "", const(Category) category = Category.NoneCategory, const ulong id = 0) {
 		import std.algorithm: filter;
 		
 		Session session = null;
@@ -211,7 +354,8 @@ static: //this makes the all the member static
 			userSessions ~= session;
 			
 		} else { //must be admin
-			//check with SQL if session is unique and add it to the according list
+			if(!Login.isAdmin) throw new Exception("Need admin role to create other users sessions");
+			
 		}
 		assert(session !is null); //if we reach this point a session should have been created
 		
@@ -223,7 +367,7 @@ static: //this makes the all the member static
 	}
 	
 	//delete session
-	void deleteSession (Session session) {
+	void deleteSession (const(Session) session) {
 		
 		if (session.user == Login.getUser()) {
 			size_t index =0;
@@ -262,7 +406,7 @@ static: //this makes the all the member static
 	}
 	
 	//edit sessions properties
-	void editSession (Session session, const ulong projID = 0 ,const string user = null ,const string date = null, const string duration = null, const string description = null, Category category = null) {
+	void editSession (Session session, const ulong projID = 0 ,const string user = null ,const string date = null, const string duration = null, const string description = null, const Category category = null) {
 		import std.algorithm: filter, remove;
 		
 		if(projID != 0) session.changeProjectID(projID); 
@@ -293,18 +437,44 @@ static: //this makes the all the member static
 		
 		if(category !is null) session.changeCategory(category);
 		
-		if( is (session: Tantum) ) DB.updateTantum(session, session.ID);
+		if( cast(Tantum)(session) !is null ) DB.updateTantum(cast(Tantum)(session), session.ID);
 		else DB.updateSession(session,session.ID);
 	}
 	//edit session with sessionID and session's user
-	void editSession (const ulong sessionID, const string sessionUser ,const ulong projID = 0 ,const string user = null ,const string date = null, const string duration = null, const string description = null, Category category = null) {
+	void editSession (const ulong sessionID, const string sessionUser ,const ulong projID = 0 ,const string user = null ,const string date = null, const string duration = null, const string description = null, const Category category = null) {
 		auto session = findSession(sessionID, user);
 		editSession( session, projID, user, date, duration, description, category);
 	}
 	//edit session with sessionID only
-	void editSession (const ulong sessionID, const ulong projID = 0 ,const string user = null ,const string date = null, const string duration = null, const string description = null, Category category = null) {
+	void editSession (const ulong sessionID, const ulong projID = 0 ,const string user = null ,const string date = null, const string duration = null, const string description = null, const Category category = null) {
 		auto session = findSession(sessionID);
 		editSession( session, projID, user, date, duration, description, category);
+	}
+	
+	const(string[string]) sessionDescription( const ulong sessionID, const string user = Login.getUser) {
+		auto session = getSession(sessionID);
+		
+		string[string] result;
+		import std.conv: to;
+		
+		result["description"] = session.description;
+		result["dateTime"] = session.dateTime;
+		result["duration"] = session.duration;
+		result["category"] = session.category;
+		result["user"] = session.user;
+		result["projectID"] = to!string(session.projectID);
+		result["ID"] = to!string(session.ID);
+		if( cast(Tantum)(session) !is null) {
+			auto tantum = cast(Tantum)(session);
+			assert(tantum !is null);
+			result["tantum"] = "true";
+			result["cost"] = to!string(tantum.cost);
+			result["taxable"] = tantum.taxable ? "true" : "false";
+		} else {
+			result["tantum"] = "false";
+		}
+		
+		return result;
 	}
 	
 //----------------------------------------------------------------------------------------
@@ -312,7 +482,7 @@ static: //this makes the all the member static
 //TANTUM HANDLING-------------------------------------------------------------------------
 
 	//create tantum; returns tantum id
-	const(ulong) createTantum (const ulong projID, const string date,const string user = Login.getUser(), const ushort cost =0, bool tax = false, const string description ="", Category category = Category.NoneCategory, const ulong id=0) {
+	const(ulong) createTantum (const ulong projID, const string date,const string user = Login.getUser(), const ushort cost =0, bool tax = false, const string description ="", const Category category = Category.NoneCategory, const ulong id=0) {
 		import std.algorithm : filter;
 		Tantum tantum = null;
 		if(user == Login.getUser() ) {
@@ -339,25 +509,25 @@ static: //this makes the all the member static
 	}
 	
 	//edit tantum
-	void editTantum (Tantum tantum, const bool tax, const ushort cost , const ulong projID = 0 ,const string user = null ,const string date = null, const string description = null, Category category = null) {
+	void editTantum (Tantum tantum, const bool tax, const ushort cost , const ulong projID = 0 ,const string user = null ,const string date = null, const string description = null, const Category category = null) {
 		tantum.changeCost(cost);
 		tantum.changeTaxable(tax);
 		editSession(tantum, projID,user, date, null, description, category);
 	}
 	//edit tantum with sessionID
-	void editTantum (const ulong tantumID, const bool tax , const ushort cost, const ulong projID = 0 ,const string user = null ,const string date = null, const string description = null, Category category = null) {
+	void editTantum (const ulong tantumID, const bool tax , const ushort cost, const ulong projID = 0 ,const string user = null ,const string date = null, const string description = null, const Category category = null) {
 		auto tantum = findTantum(tantumID);
 		editTantum(tantum, tax,cost, projID,user, date, description, category);
 	}
-	void editTantum (const ulong tantumID, const ushort cost, const ulong projID = 0 ,const string user = null ,const string date = null, const string description = null, Category category = null) {
+	void editTantum (const ulong tantumID, const ushort cost, const ulong projID = 0 ,const string user = null ,const string date = null, const string description = null, const Category category = null) {
 		auto tantum = findTantum(tantumID);
 		editTantum(tantum, tantum.taxable,cost, projID,user, date, description, category);
 	}
-	void editTantum (const ulong tantumID, const bool tax , const ulong projID = 0 ,const string user = null ,const string date = null, const string description = null, Category category = null) {
+	void editTantum (const ulong tantumID, const bool tax , const ulong projID = 0 ,const string user = null ,const string date = null, const string description = null, const Category category = null) {
 		auto tantum = findTantum(tantumID);
 		editTantum(tantum, tax,tantum.cost, projID,user, date, description, category);
 	}
-	void editTantum (const ulong tantumID, const ulong projID = 0 ,const string user = null ,const string date = null, const string description = null, Category category = null) {
+	void editTantum (const ulong tantumID, const ulong projID = 0 ,const string user = null ,const string date = null, const string description = null, const Category category = null) {
 		auto tantum = findTantum(tantumID);
 		editTantum(tantum, tantum.taxable, tantum.cost, projID,user, date, description, category);
 	}
@@ -368,6 +538,7 @@ static: //this makes the all the member static
 
 	//create project
 	const(ulong) createProject(const string name, const ushort jobNumber=0, const bool sync = false, const string notes="", const ulong id=0){
+		
 		auto proj = new Project(name, jobNumber, sync, notes, id);
 		
 		DB.newProject(proj);
@@ -376,11 +547,15 @@ static: //this makes the all the member static
 	
 	//delete project
 	void deleteProject(const ulong projID) {
-		Project.deleteProject(projID);
-		DB.deleteProject(findProject(projID));
+		deleteProject(findProject(projID));
+		
 	}
 	void deleteProject(const Project pro){
+		
 		Project.deleteProject(pro.ID);
+		foreach(ref ses; userSessions) {
+			if(ses.projectID == pro.ID) deleteSession(ses);		
+		}
 		DB.deleteProject(pro);
 	}
 	
@@ -426,10 +601,9 @@ static: //this makes the all the member static
 		DB.deleteCategory(cat);
 	}
 	void deleteCategory(const string nameID) {
-		Category.deleteCategory(nameID);
 		DB.deleteCategory(findCategory(nameID));
+		Category.deleteCategory(nameID);
 	}
-	
 	//edit category
 	void editCategory(Category cat,  const ushort feriale , const ushort  festivo ,const string  name = null, const string  color=null) {
 		string oldName = cat.name();
@@ -469,6 +643,13 @@ static: //this makes the all the member static
 	
 	void logout() {
 		DB.logout();
+		userSessions = [];
+		foreach( ref t ; activeSessions) {
+			stopSession(t[0]);
+		}
+		activeSessions = [];
+		Project.resetProjects();
+		Category.resetCategories();
 	}
 	
 	Outcome createUser( const string userName, const string password, const string role) {
@@ -476,11 +657,20 @@ static: //this makes the all the member static
 	}
 	
 	Outcome deleteUser( const string userName) {
+	
+		//delete all sessions associated with that user
+		auto sessions = Local.getSessions(userName);
+		
+		foreach( ref s ; sessions){
+			if(cast(Tantum) s !is null) deleteTantum(cast(Tantum)s);
+			else deleteSession(s);
+		}
+	
 		mixin(doTryCommand("DB.deleteUser(userName)", "User deleted"));
 	}
 	
-	Outcome changeOwnPassword( const string oldPassword, const string newPassword) {
-		mixin(doTryCommand("DB.changeOwnPassword(oldPassword,newPassword)", "Password changed"));
+	Outcome changeOwnPassword(const string newPassword) {
+		mixin(doTryCommand("DB.changeOwnPassword(newPassword)", "Password changed"));
 	}
 	
 	Outcome forgotPassword(const string user, const string newPassword) {
@@ -587,12 +777,55 @@ static: //this makes the all the member static
 
 //SETTINGS HANDLING-----------------------------------------------------------------------
 
+	void setHost(const string host ) {
+		_host = host;
+		
+		import std.file: readText, write;
+		
+		auto content = readText(settingsFile);
+		auto json = parseJSON(content);
+		
+		json["host"] = _host;
+		
+		write(settingsFile, json.toPrettyString);
+	}
+	
+	const(string) getHost() {
+		return _host;
+	}
+
 //----------------------------------------------------------------------------------------
 
 //REPORTS-FATTURE MAKING------------------------------------------------------------------
 
 //----------------------------------------------------------------------------------------
 	
+//DIRECT SYNC DATABASE--------------------------------------------------------------------
+
+	void syncDatabase(const bool flag = true) {
+		DB.syncAll(flag);
+	}
+	
+	void syncProjects(const bool changes = true) {
+		DB.syncProjects(changes);
+	}
+	
+	void syncCategories(const bool changes = true) {
+		DB.syncCategories(changes);
+	}
+	
+	void syncSessions(const string user = Login.getUser, const bool changes = true) {
+		if( user != Login.getUser && !Login.isAdmin) {
+			throw new Exception("Need to be admin to sync someone else sessions");
+		}
+		DB.syncSessions(user, changes);
+	}
+	
+	void syncUsers() {
+		DB.getPasswords();
+	}
+	
+//----------------------------------------------------------------------------------------
 }
 
 class Warning : Exception {

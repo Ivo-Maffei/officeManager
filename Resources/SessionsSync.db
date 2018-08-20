@@ -1,0 +1,256 @@
+
+{
+    "_id": 636701008757365220,
+    "category": "Prova Database",
+    "dateTime": "2018-08-17T13:07:55",
+    "description": "",
+    "duration": "00:01",
+    "project": 636698383859411630,
+    "status": "new",
+    "tantum": false,
+    "user": "puci"
+}
+
+{
+    "_id": 636701079825537890,
+    "category": "Prova Database",
+    "dateTime": "2018-08-17T15:06:22",
+    "description": "",
+    "duration": "00:01",
+    "project": 636698383859411630,
+    "status": "new",
+    "tantum": false,
+    "user": "puci"
+}
+
+{
+    "_id": 636701083420817930,
+    "category": "Prova Database",
+    "dateTime": "2018-08-17T15:12:22",
+    "description": "",
+    "duration": "00:01",
+    "project": 636698383859411630,
+    "status": "new",
+    "tantum": false,
+    "user": "puci"
+}
+
+{
+    "_id": 636701085218386640,
+    "category": "Prova Database",
+    "dateTime": "2018-08-17T15:15:21",
+    "description": "",
+    "duration": "00:01",
+    "project": 636698383859411630,
+    "status": "new",
+    "tantum": false,
+    "user": "puci"
+}
+
+{
+    "_id": 636701089557125470,
+    "category": "Prova Database",
+    "dateTime": "2018-08-17T15:22:35",
+    "description": "",
+    "duration": "00:01",
+    "project": 636698383859411630,
+    "status": "new",
+    "tantum": false,
+    "user": "puci"
+}
+
+{
+    "_id": 636702718120251900,
+    "category": "Prova Database",
+    "dateTime": "2018-08-19T12:36:52",
+    "description": "",
+    "duration": "00:01",
+    "project": 636698383859411630,
+    "status": "new",
+    "tantum": false,
+    "user": "puci"
+}
+
+{
+    "_id": 636702743567502870,
+    "category": "Prova Database",
+    "dateTime": "2018-08-19T13:19:16",
+    "description": "",
+    "duration": "00:01",
+    "project": 636698383859411630,
+    "status": "new",
+    "tantum": false,
+    "user": "puci"
+}
+
+{
+    "_id": 636702747249080030,
+    "category": "Prova Database",
+    "dateTime": "2018-08-19T13:25:24",
+    "description": "",
+    "duration": "00:02",
+    "project": 636698383859411630,
+    "status": "new",
+    "tantum": false,
+    "user": "puci"
+}
+
+{
+    "_id": 636702763089820650,
+    "category": "Prova Database",
+    "dateTime": "2018-08-19T13:51:48",
+    "description": "",
+    "duration": "00:01",
+    "project": 636698383859411630,
+    "status": "new",
+    "tantum": false,
+    "user": "puci"
+}
+
+{
+    "_id": 636702763089820650,
+    "category": "Prova Database",
+    "dateTime": "2018-08-19T13:51:48",
+    "description": "",
+    "duration": "0:3",
+    "oldId": 636702763089820650,
+    "project": 636698383859411630,
+    "status": "update",
+    "tantum": false,
+    "user": "puci"
+}
+
+{
+    "_id": 636702766662213070,
+    "category": "Prova Database",
+    "dateTime": "2018-08-19T13:57:46",
+    "description": "",
+    "duration": "00:01",
+    "project": 636698383859411630,
+    "status": "new",
+    "tantum": false,
+    "user": "puci"
+}
+
+{
+    "_id": 636702766662213070,
+    "category": "Prova Database",
+    "dateTime": "2018-08-19T13:57:46",
+    "description": "",
+    "duration": "00:04",
+    "oldId": 636702766662213070,
+    "project": 636698383859411630,
+    "status": "update",
+    "tantum": false,
+    "user": "puci"
+}
+
+{
+    "_id": 636702771823311990,
+    "category": "Prova Database",
+    "dateTime": "2018-08-19T14:06:22",
+    "description": "",
+    "duration": "00:01",
+    "project": 636698383859411630,
+    "status": "new",
+    "tantum": false,
+    "user": "puci"
+}
+
+{
+    "_id": 636702771823311990,
+    "category": "Prova Database",
+    "dateTime": "2018-08-19T14:06:22",
+    "description": "",
+    "duration": "00:01",
+    "oldId": 636702771823311990,
+    "project": 636698383859411630,
+    "status": "update",
+    "tantum": false,
+    "user": "puci"
+}
+
+{
+    "_id": 636702773205258800,
+    "category": "Prova Database",
+    "dateTime": "2018-08-19T14:08:40",
+    "description": "",
+    "duration": "00:01",
+    "project": 636698383859411630,
+    "status": "new",
+    "tantum": false,
+    "user": "puci"
+}
+
+{
+    "_id": 636702774422139330,
+    "category": "Prova Database",
+    "dateTime": "2018-08-19T14:10:42",
+    "description": "",
+    "duration": "00:01",
+    "project": 636698383859411630,
+    "status": "new",
+    "tantum": false,
+    "user": "puci"
+}
+
+{
+    "_id": 636702775441330710,
+    "category": "Prova Database",
+    "dateTime": "2018-08-19T14:12:24",
+    "description": "",
+    "duration": "00:01",
+    "project": 636698383859411630,
+    "status": "new",
+    "tantum": false,
+    "user": "puci"
+}
+
+{
+    "_id": 636702775441330710,
+    "category": "Prova Database",
+    "dateTime": "2018-08-19T14:12:24",
+    "description": "",
+    "duration": "00:02",
+    "oldId": 636702775441330710,
+    "project": 636698383859411630,
+    "status": "update",
+    "tantum": false,
+    "user": "puci"
+}
+
+{
+    "_id": 636702777553154350,
+    "category": "Prova Database",
+    "dateTime": "2018-08-19T14:15:55",
+    "description": "",
+    "duration": "00:01",
+    "project": 636698383859411630,
+    "status": "new",
+    "tantum": false,
+    "user": "puci"
+}
+
+{
+    "_id": 636702793869064710,
+    "category": "Prova Database",
+    "dateTime": "2018-08-19T14:43:06",
+    "description": "",
+    "duration": "00:01",
+    "project": 636698383859411630,
+    "status": "new",
+    "tantum": false,
+    "user": "puci"
+}
+
+{
+    "_id": 636702796345055240,
+    "category": "Prova Database",
+    "dateTime": "2018-08-19T14:47:14",
+    "description": "",
+    "duration": "00:02",
+    "project": 636698383859411630,
+    "status": "new",
+    "tantum": false,
+    "user": "puci"
+}
