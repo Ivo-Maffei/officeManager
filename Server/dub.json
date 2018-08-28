@@ -1,0 +1,14 @@
+{
+	"name": "office_manager_server",
+	"authors": [
+		"Ivo Maffei"
+	],
+	"description": "Server to interface with mobile and MongoDB",
+	"copyright": "Copyright © 2018, Ivo Maffei",
+	"license": "proprietary",
+	"dependencies": {
+		"vibe-d": {
+			"path" : "../vibe-d/"
+		}
+	}
+}

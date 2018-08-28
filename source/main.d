@@ -11,23 +11,30 @@ extern (C) int UIAppMain(string[] args) {
     // create window
     Window window = Platform.instance.createWindow("Office Manager", null, WindowFlag.Resizable, 1000,1000);
     window.onClose(delegate () { //sync before closing
-    	Local.syncDatabase;
+    	Local.syncDatabase();
+    	MenuBarInteraction.quit();
     });
     
     loginUI(window); //create Login UI
     
     window.show();
     auto inactivity = new InactivityWidget(window);
-    window.inactivity = inactivity;
-    
-    Platform.instance.catchGlobalMouseMovement = true; //so we track the mouse position even when the window is not focused
-    
-    Platform.instance.onMouseMovement = &(inactivity.resetTimer);
-    Platform.instance.onLoop = &(inactivity.update);
-    
     scope(exit) {
     	destroy(inactivity);
     }
+    
+    window.inactivity = inactivity;
+
+ 	MenuBarInteraction.setWindow(window);  
+    
+    //MenuBarInteraction.start();
+    
+    Platform.instance.onLoop = delegate () {
+    	inactivity.update();
+    	MenuBarInteraction.update();
+    };
+    
+    
     // run message loop
     return Platform.instance.enterMessageLoop();
  
@@ -107,6 +114,7 @@ void normalUI(ref Window window) { //create UI for normal use
 	SettingsItem.add(new MenuItem(new Action(31,"Database settings"d)));
 	SettingsItem.add(new MenuItem(new Action(32,"Reports settings"d)));
 	SettingsItem.add(new MenuItem(new Action(33,"User Interface settings"d)));
+	SettingsItem.add(new MenuItem(new Action(34,"Menu Bar settings"d)));
 	
     auto itemsContainer = new MenuItem();//item which will contain the menu buttons
     itemsContainer.add(userItem);
@@ -191,6 +199,10 @@ void normalUI(ref Window window) { //create UI for normal use
    		userList ~= to!dstring(u);
    	}
    	userbox.items = userList;// ~ "Any"d;
+   	
+   	//Set old selection
+   	loadState(projbox,catbox,userbox);
+   	
    	auto filterbtn = new Button("filterbtn", "Aggiorna tabella"d);
    	filterbtn.fontSize = 20;
    	
@@ -230,13 +242,14 @@ void normalUI(ref Window window) { //create UI for normal use
    	//------------------------------------------------------------------------------------
    	
    	//CONNECT SIGNALS---------------------------------------------------------------------
-   	playbtn.click = new StartStopSession(projbox, catbox, grid);
+   	playbtn.click =  new StartStopSession(projbox, catbox, grid);
    	projbtn.click = new CreateProjectUI(window);
    	sessionbtn.click = new CreateSessionUI(window);
    	catbtn.click = new CreateCategoryUI(window);
    	filterbtn.click = new UpdateGrid(projbox, catbox, userbox, grid);
    	editCat.click = new EditCategoryUI(window);
    	editProj.click = new EditProjectUI(window);
+   	repobtn.click = new ReportUI(window);
    	
    	grid.cellPopupMenu = new EditSessionPopup(window);
    	
@@ -248,14 +261,18 @@ void normalUI(ref Window window) { //create UI for normal use
    	userbox.itemClick = saveStateHandler;
    	
    	to!InactivityWidget(window.inactivity).setGrid(grid);
+   	to!InactivityWidget(window.inactivity).setButton(playbtn);
    	//------------------------------------------------------------------------------------
    	
    	//add to gridLayout
    	gridLayout.addChild(dropLayout);
    	gridLayout.addChild(grid);
    	
-   	//Set old selection
-   	loadState(projbox,catbox,userbox);
+   	//check active sessions
+   	auto projName = to!string(projbox.selectedItem);
+   	if(projName != "Any" && Local.getActiveSession(Local.getProjectId(projName)) !is null) { //there is an active session with this project
+   		playbtn.text = "Stop Session"d;
+   	}
     
     //add everything to external Layout
     vLayout.addChild(mbar);
@@ -265,7 +282,17 @@ void normalUI(ref Window window) { //create UI for normal use
     
     //add layout to window
     window.mainWidget = (vLayout);
-
+    
+    //start menubar if needed
+    import Utility: getCurrentPath;
+	import std.file: readText;
+	import std.json;
+	
+    auto file =  getCurrentPath ~ "settings";
+	auto json = parseJSON(readText(file));
+	if(json["menuBar"].type == JSON_TYPE.TRUE && !MenuBarInteraction.isMenuBarRunning) {
+		MenuBarInteraction.start();
+	}
 }
 
 void UserOptionsUI (ref Window window){
@@ -786,6 +813,9 @@ void editSessionUI (ref Window window, const ulong sessionID) {
 		t.addChild(tax);
 	}
 	
+	t.addChild(new TextWidget(null, "Posizione"d));
+	t.addChild(new EditLine("pos", to!dstring(info["place"])));
+	
 	t.addChild(new TextWidget(null, "Descrizione"d));
 	t.addChild(new EditLine("desc", to!dstring(info[ "description"])));
 	auto done = new Button(null,"Applica"d);
@@ -933,5 +963,95 @@ void editProjectUI (ref Window window) {
 	
 }
 
+void menuBarUI ( ref Window window){	
+	
+	window.resizeWindow(Point(300,500));
 
+	auto t = new TableLayout();
+	t.layoutWidth(FILL_PARENT);
+	t.colCount = 2;
+	
+	t.addChild(new TextWidget(null, "Mostra Office Manager nella barra dei menu"d));
+	auto menuBar = new CheckBox();
+	//read from settings the state of menuBar
+	t.addChild(menuBar);
+	
+	t.addChild(new TextWidget(null, "Porte IP che Office Manager può utilizzare"d));
+	auto menuBarPort = new EditLine();
+	menuBarPort.layoutWidth(FILL_PARENT);
+	menuBarPort.checked = MenuBarInteraction.isMenuBarRunning;
+	
+	auto officeManagerPort = new EditLine();
+	officeManagerPort.layoutWidth(FILL_PARENT);
+	
+	auto h = new HorizontalLayout();
+	h.layoutWidth(FILL_PARENT);
+	h.addChildren([menuBarPort, officeManagerPort]);
+	t.addChild(h);
+	
+	auto done = new Button(null, "OK"d);
+	t.addChild(done);
+	
+	auto annulla = new Button(null, "Annulla"d);
+	annulla.click = new BackClick(window);
+	t.addChild(annulla);
+	
+	t.fontSize = 25;
+	
+	import Utility: getCurrentPath;
+	import std.json;
+	import std.file: readText;
+	
+	auto file = getCurrentPath() ~ "settings";
+	auto json = parseJSON(readText(file));
+	menuBarPort.text = to!dstring(json["menuBarPort"].integer);
+	officeManagerPort.text = to!dstring(json["OMPort"].integer);
+	
+	window.mainWidget = t;
+}
+
+void reportUI (ref Window window) {
+
+	window.resizeWindow(Point(500,400));
+	
+	auto t = new TableLayout();
+	t.colCount = 2;
+	t.layoutWidth(FILL_PARENT);
+	
+	t.addChild(new TextWidget(null, "Analizza"d));
+	auto h = new HorizontalLayout();
+	h.layoutWidth(FILL_PARENT);
+	
+	auto combo = new ComboBox("what");
+	combo.items = ["Tutto"d, "utente"d, "progetto"d, "categoria"d];
+	h.addChild(combo);
+	t.addChild(h);
+	
+	
+	t.addChild(new TextWidget(null, "Dividi per"d));
+	auto group = new ComboBox("group");
+	group.items = ["progetto"d, "utente"d, "categoria"d];
+	t.addChild(group);
+	
+	t.addChild(new TextWidget(null, "Calcola anche i costi"d));
+	t.addChild(new CheckBox("cost"));
+	
+	auto v = new VerticalLayout();
+	v.layoutWidth(FILL_PARENT);
+	
+	v.addChild(t);
+	
+	auto calcola = new Button(null, "Calcola"d);
+	v.addChild(calcola);
+	calcola.click = new GraphGenerator(v);
+	
+	auto annulla = new Button(null, "Annulla"d);
+	v.addChild(annulla);
+	annulla.click = new BackClick(window);
+	
+	combo.itemClick = new UpdateGroupSelection(group, h);
+	
+	window.mainWidget = v;
+
+}
 

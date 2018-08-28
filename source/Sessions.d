@@ -11,6 +11,7 @@ private:
 	// ushort _cost =0; this for tantums see below
 	string _category; //category of the session
 	string _user; //user of the session
+	string location; //place where the session takes place
 	ulong _projID; //project the session belongs to
 	ulong _sessionID; //session ID (may be equal to project ID)
 	//each session is uniquely defined by its dateTime, project ID and user [no user can create 2 sessions for the same project at the same time]
@@ -130,6 +131,13 @@ public:
 	const(ulong) ID() const {return _sessionID;}
 	void changeID(const ulong id) { //session can't check for uniqueness
 		_sessionID = id;
+	}
+	
+	
+	//place
+	const(string) place() const { return location; }
+	void changePlace(const string place ) {
+		location = place;
 	}
 
 }

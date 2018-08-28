@@ -32,7 +32,7 @@ import std.range;
 final class MongoClient {
 @safe:
 
-	public {
+	private {
 		ConnectionPool!MongoConnection m_connections;
 	}
 

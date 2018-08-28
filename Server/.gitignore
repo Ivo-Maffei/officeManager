@@ -1,0 +1,14 @@
+.dub
+docs.json
+__dummy.html
+docs/
+office_manager_server.so
+office_manager_server.dylib
+office_manager_server.dll
+office_manager_server.a
+office_manager_server.lib
+office_manager_server-test-*
+*.exe
+*.o
+*.obj
+*.lst

@@ -224,7 +224,7 @@ static:
 	}
 	
 	const(JSONValue) getPasswords(const string host = null) {
-		//returns a JSON with entries user : hashedpassword
+		//returns a JSON with entries user : { password: hashedpassword, role: hashedRole}
 		//this is the remote version of the password file that LogIn uses
 		if( systemClient is null ) {
 			if( host is null)

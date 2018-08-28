@@ -33,26 +33,32 @@ static: //this makes the all the member static
 	
 	//find session/tantum/project/category via its ID
 	private Session findSession(const ulong sessionID, const string user = Login.getUser()) {
-		Session session = null;
 		
-		if(user == Login.getUser()) {//look locally
-			foreach (ref ses; userSessions) {
-				if(ses.ID == sessionID) return ses; //note that ses may actually be a Tantum
+		if(user != Login.getUser) {
+			import std.file: readText;
+			import LocalSide;
+			import Utility;
+			
+			if(!offline) {
+				if(user != null) DB.getSessions(user);
+				else DB.getAllSessions();
 			}
+			
+			foreach (ref json ; splitJson(readText(SyncLocal.sessionsDB)) ) {
+				auto ses = createSessionFromJson(parseJSON(json));
+				if(ses.ID == sessionID) return  ses;
+			}
+			
 		}
 		
-		/*if( not Admin ) {
-			throw new Exception("can't find the session; Does the session belong to another user? If so, please log-in as admin");
-		}
-		*/
-		
-		//do sql search
-		
-		if(session is null) {
-			throw new Exception("can't find the session; Are you sure such session exists?");
+		foreach (ref ses; userSessions) {
+			if(ses.ID == sessionID) return ses; //note that ses may actually be a Tantum
 		}
 		
-		return session;
+		throw new Exception("can't find the session; Are you sure such session exists?");
+		
+		assert(0); //always something wrong here
+		
 	}
 	private Tantum findTantum (const ulong sessionID, const string user = Login.getUser()) {
 		auto session = findSession(sessionID,user);
@@ -123,6 +129,7 @@ static: //this makes the all the member static
 		} else {
 			auto s =  new Session(proj, json["user"].str, json["description"].str, findCategory(json["category"].str), json["dateTime"].str, _id);
 			s.changeDuration(json["duration"].str);
+			s.changePlace(json["place"].str);
 			return s;
 		}
 		
@@ -220,9 +227,34 @@ static: //this makes the all the member static
 		
 	}
 	
+	const(Session[]) getAllSessions() {
+		if(!offline) DB.getAllSessions();
+		
+		Session[] result;
+		
+		import LocalSide;
+		import std.file: readText;
+		import Utility: splitJson;
+		
+		foreach (ref json ; splitJson(readText(SyncLocal.sessionsDB)) ) {
+			result ~= createSessionFromJson(parseJSON(json));
+		}
+		
+		return result;
+	}
+	
 	//get active sessions
 	const(Tuple!(Session,StopWatch)[]) getActiveSession()  {
 		return activeSessions;
+	}
+	
+	//tells us if there is an active session for this project
+	const(Session) getActiveSession(ulong projID) {
+		import std.algorithm: filter;
+		
+		auto list = activeSessions.filter!( t => t[0].projectID == projID);
+		if(list.empty) return null;
+		return list.front[0];
 	}
 	
 	//get projects
@@ -442,13 +474,18 @@ static: //this makes the all the member static
 	}
 	//edit session with sessionID and session's user
 	void editSession (const ulong sessionID, const string sessionUser ,const ulong projID = 0 ,const string user = null ,const string date = null, const string duration = null, const string description = null, const Category category = null) {
-		auto session = findSession(sessionID, user);
-		editSession( session, projID, user, date, duration, description, category);
+		auto session = findSession(sessionID, sessionUser);
+		editSession( session, projID, user, date,duration, description, category);
 	}
 	//edit session with sessionID only
 	void editSession (const ulong sessionID, const ulong projID = 0 ,const string user = null ,const string date = null, const string duration = null, const string description = null, const Category category = null) {
-		auto session = findSession(sessionID);
+		auto session = findSession(sessionID, null);
 		editSession( session, projID, user, date, duration, description, category);
+	}
+	
+	void changeSessionPlace(const ulong sessionID, const string sessionUser, const string place) {
+		auto session = findSession(sessionID, sessionUser);
+		session.changePlace(place);
 	}
 	
 	const(string[string]) sessionDescription( const ulong sessionID, const string user = Login.getUser) {
@@ -464,6 +501,8 @@ static: //this makes the all the member static
 		result["user"] = session.user;
 		result["projectID"] = to!string(session.projectID);
 		result["ID"] = to!string(session.ID);
+		result["place"] = session.place;
+		
 		if( cast(Tantum)(session) !is null) {
 			auto tantum = cast(Tantum)(session);
 			assert(tantum !is null);
@@ -515,23 +554,23 @@ static: //this makes the all the member static
 		editSession(tantum, projID,user, date, null, description, category);
 	}
 	//edit tantum with sessionID
-	void editTantum (const ulong tantumID, const bool tax , const ushort cost, const ulong projID = 0 ,const string user = null ,const string date = null, const string description = null, const Category category = null) {
-		auto tantum = findTantum(tantumID);
+	void editTantum (const ulong tantumID, const string owner, const bool tax , const ushort cost, const ulong projID = 0 ,const string user = null ,const string date = null, const string description = null, const Category category = null) {
+		auto tantum = findTantum(tantumID, owner);
 		editTantum(tantum, tax,cost, projID,user, date, description, category);
 	}
-	void editTantum (const ulong tantumID, const ushort cost, const ulong projID = 0 ,const string user = null ,const string date = null, const string description = null, const Category category = null) {
-		auto tantum = findTantum(tantumID);
+	void editTantum (const ulong tantumID, const string owner, const ushort cost, const ulong projID = 0 ,const string user = null ,const string date = null, const string description = null, const Category category = null) {
+		auto tantum = findTantum(tantumID, owner);
 		editTantum(tantum, tantum.taxable,cost, projID,user, date, description, category);
 	}
-	void editTantum (const ulong tantumID, const bool tax , const ulong projID = 0 ,const string user = null ,const string date = null, const string description = null, const Category category = null) {
-		auto tantum = findTantum(tantumID);
+	void editTantum (const ulong tantumID, const string owner, const bool tax , const ulong projID = 0 ,const string user = null ,const string date = null, const string description = null, const Category category = null) {
+		auto tantum = findTantum(tantumID, owner);
 		editTantum(tantum, tax,tantum.cost, projID,user, date, description, category);
 	}
-	void editTantum (const ulong tantumID, const ulong projID = 0 ,const string user = null ,const string date = null, const string description = null, const Category category = null) {
-		auto tantum = findTantum(tantumID);
+	void editTantum (const ulong tantumID, const string owner, const ulong projID = 0 ,const string user = null ,const string date = null, const string description = null, const Category category = null) {
+		auto tantum = findTantum(tantumID, owner);
 		editTantum(tantum, tantum.taxable, tantum.cost, projID,user, date, description, category);
 	}
-	
+	 
 //----------------------------------------------------------------------------------------
 
 //PROJECT HANDLING------------------------------------------------------------------------

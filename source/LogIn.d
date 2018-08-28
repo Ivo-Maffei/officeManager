@@ -142,7 +142,6 @@ static:
 	
 	//log in
 	void login(const string user, const string password) {
-		import std.stdio;
 		
 		auto fileContent = readPassFile();
 		
@@ -160,7 +159,6 @@ static:
 		foreach (ref role; roles) {
 			if(file[user]["role"].str == hashRole(user,role)) {
 				_role = role;
-				writeln("########################## role is : " , _role);
 			}
 		}
 		

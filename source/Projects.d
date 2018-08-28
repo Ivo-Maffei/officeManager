@@ -53,7 +53,7 @@ public:
 		if( id ==0 ) { //if no id is provided; create one using timestamp
 			import std.datetime.systime; 
 			
-			changeID (Clock.currTime.stdTime); //seconds since 1/01/01 UTC; timestamp to ensure uniqueness
+			changeID (Clock.currTime.stdTime); //hnseconds since 1/01/01 UTC; timestamp to ensure uniqueness
 		} else {
 			changeID(id);
 		}

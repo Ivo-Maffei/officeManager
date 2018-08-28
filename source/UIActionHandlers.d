@@ -30,10 +30,12 @@ class MyMenuActionHandler : MenuItemActionHandler {
     			
     		case 21:
     			Local.syncDatabase();
+    			MenuBarInteraction.changeProjects();
     			break;
     			
     		case 22:
     			Local.syncProjects();
+    			MenuBarInteraction.changeProjects();
     			break;
     			
     		case 23:
@@ -50,6 +52,10 @@ class MyMenuActionHandler : MenuItemActionHandler {
     		
     		case 31: //database options
     			DBOptionsUI(*_window);
+    			break;
+    			
+    		case 34: //menu bar options
+    			menuBarUI(*_window);
     			break;
     		default:
 				//nothing
@@ -129,23 +135,33 @@ class StartStopSession : OnClickHandler {
 		ulong sessionID = 0;
 		ComboBox proj, cat;
 		StringGridWidget grid;
-		int row;
 	}
 	
 	this (ComboBox p, ComboBox c,  ref StringGridWidget g) {	
 		proj = p; //selected project 
 		cat = c;
 		grid = g;
+		
+		string projName = to!string(proj.selectedItem);
+		if( projName == "Any") return;
+		
+		auto ses = Local.getActiveSession(Local.getProjectId(projName));
+		if(ses !is null) {
+			sessionID = ses.ID;
+		}
 	}
 	
 	override bool onClick(Widget src) {	
 		
 		if(sessionID == 0 ) { //no active Session
-			row = grid.rows;
+			int row = grid.rows;
 			grid.rows = grid.rows +1;
 			grid.setRowTitle(row, to!dstring(row+1));
 			auto projID = Local.getProjectId(to!string(proj.selectedItem));
 			sessionID = Local.startSession(projID, "", Local.getCategory(to!string(cat.selectedItem)));
+			
+			MenuBarInteraction.startSession(projID);
+			
 			auto description = Local.sessionDescription(sessionID);
 			//aggiorna la tabella;
 			grid.setCellText(0,row, to!dstring(description["dateTime"]));
@@ -160,11 +176,20 @@ class StartStopSession : OnClickHandler {
 			to!Button(src).text = "Stop Session"d;
 		} else {
 		
-			Local.stopSession(sessionID);
+			Local.stopSession(sessionID);	
+			scope (exit) {
+				sessionID = 0;
+			}		
 			auto s = Local.sessionDescription(sessionID);
-			sessionID = 0;
-			grid.setCellText(1,row, to!dstring(s["duration"]));
+			MenuBarInteraction.stopSession(to!ulong(s["projectID"]));
+			for(int row = 0; row < grid.rows; ++row) {
+				if(to!ulong(grid.cellText(6,row)) == sessionID) {
+					grid.setCellText(1,row, to!dstring(s["duration"]));
+					break;
+				}
+			}
 			to!Button(src).text = "Start Session"d;
+			
 		}
 		
 		grid.autoFit;
@@ -197,6 +222,7 @@ class CreateProject : OnClickHandler {
 	}
 	override bool onClick( Widget src) {
 	 	auto projID = Local.createProject(to!string(_name.text), to!ushort(_job.text),_sync.checked, to!string(_note.text));
+	 	MenuBarInteraction.changeProjects();
 	 	auto b = new BackClick(*_win);
 	 	return b.onClick(src);
 	}
@@ -550,12 +576,14 @@ class EditSession : OnClickHandler {
 		TableLayout t;
 		Window* win;
 		bool tantum;
+		string oldUser;
 	}
 	
 	this(ref Window w, TableLayout table, bool tan) {
 		win = &w;
 		t = table;
 		tantum = tan;
+		oldUser = to!string(t.childById!ComboBox("user").selectedItem);
 	}
 	
 	override bool onClick(Widget src) {
@@ -569,9 +597,10 @@ class EditSession : OnClickHandler {
 		if(!tantum) {
 			string duration = to!string(t.childById!ComboBox("hour2").selectedItem);
 			duration ~= ":"~ to!string(t.childById!ComboBox("min2").selectedItem);
-			Local.editSession(to!ulong(t.childById!TextWidget("sessionID").text), Local.getProjectId(to!string(t.childById!ComboBox("proj").selectedItem)) , to!string(t.childById!ComboBox("user").selectedItem), date, duration, to!string(t.childById!EditLine("desc").text), Local.getCategory(to!string(t.childById!ComboBox("cat").selectedItem)));
+			Local.editSession(to!ulong(t.childById!TextWidget("sessionID").text), oldUser, Local.getProjectId(to!string(t.childById!ComboBox("proj").selectedItem)) , to!string(t.childById!ComboBox("user").selectedItem), date, duration, to!string(t.childById!EditLine("desc").text), Local.getCategory(to!string(t.childById!ComboBox("cat").selectedItem)));
+			Local.changeSessionPlace(to!ulong(t.childById!TextWidget("sessionID").text), oldUser, to!string(t.childById!EditLine("pos").text));
 		} else {
-			Local.editTantum(to!ulong(t.childById!TextWidget("sessionID").text), t.childById!CheckBox("tax").checked, to!ushort(t.childById!EditLine("cost").text),Local.getProjectId(to!string(t.childById!ComboBox("proj").selectedItem)), to!string(t.childById!ComboBox("user").selectedItem),date, to!string(t.childById!EditLine("desc").text), Local.getCategory(to!string(t.childById!ComboBox("cat").selectedItem)));
+			Local.editTantum(to!ulong(t.childById!TextWidget("sessionID").text), oldUser, t.childById!CheckBox("tax").checked, to!ushort(t.childById!EditLine("cost").text),Local.getProjectId(to!string(t.childById!ComboBox("proj").selectedItem)), to!string(t.childById!ComboBox("user").selectedItem),date, to!string(t.childById!EditLine("desc").text), Local.getCategory(to!string(t.childById!ComboBox("cat").selectedItem)));
 		}
 		
 		auto back = new BackClick(*win);
@@ -773,11 +802,266 @@ class EditProject : OnClickHandler {
 	override bool onClick(Widget src) {
 		
 		Local.editProject(Local.getProjectId(to!string(t.childById!ComboBox("proj").selectedItem)), to!ushort(t.childById!EditLine("jobNumber").text), t.childById!CheckBox("sync").checked, to!string(t.childById!EditLine("shortName").text), to!string(t.childById!EditLine("notes").text));
-		
+		MenuBarInteraction.changeProjects();
 		auto back = new BackClick(win);
 		return back.onClick(src);
 	}
 	
+}
+
+class UpdateNormalUISelection : OnItemSelectedHandler {
+
+	private{
+		ComboBox proj, cat, user;
+	}
+	
+	this( ComboBox p, ComboBox c, ComboBox u) {
+		proj = p;
+		cat = c;
+		user = u;
+	}
+
+	override bool onItemSelected( Widget src, int itemIndex) {
+		
+		saveState(proj, cat, user);
+		
+		return true;
+	}
+}
+
+class MenuBarSettings : OnClickHandler {
+
+	private {
+		CheckBox menuBar;
+		EditLine myPort, port;
+	
+	}
+	
+	this( EditLine p1, EditLine p2, CheckBox cb) {
+		myPort = p1;
+		port = p2;
+		menuBar = cb;
+	}
+	
+	override bool onClick(Widget src) {
+	
+		import Utility: getCurrentPath;
+		import std.file: readText, write;
+		import std.json;
+		
+		if(menuBar.checked != MenuBarInteraction.isMenuBarRunning) {
+			if(menuBar.checked) {
+				MenuBarInteraction.start();
+			} else {
+				MenuBarInteraction.quit();
+			}
+		}
+		
+		
+		//get settings file
+		auto file =  getCurrentPath ~ "settings";
+		auto json = parseJSON(readText(file));
+		
+		auto save = delegate() {
+			json["menuBar"] = menuBar.checked;
+			json["OMPort"] = to!ushort(myPort.text);
+			json["menuBarPort"] = to!ushort(port.text);
+			write(file, json.toPrettyString);
+		};
+		
+		if(json["OMPort"].integer != to!long(myPort.text) || json["menuBarPort"].integer != to!long(port.text)) {//need to change ports
+			MenuBarInteraction.quit();
+			save();
+			MenuBarInteraction.start();
+		}
+		
+		save();
+		
+		auto back = new BackClick(src.window);
+		return back.onClick(src);
+	}
+
+}
+
+class ReportUI: NewUI!("reportUI")  {
+	this(ref Window win) {
+		super(win);
+	}
+	
+}
+
+class UpdateGroupSelection : OnItemSelectedHandler {
+
+	private{
+		ComboBox b;
+		HorizontalLayout h;
+	}
+	
+	this( ComboBox combo, HorizontalLayout hor) {
+		b = combo;
+		h = hor;
+	}
+
+	override bool onItemSelected( Widget src, int itemIndex) {
+		ComboBox combo;
+		if(h.childById("select") is null) {
+			combo = new ComboBox("select");
+			h.addChild(combo);
+		} else combo = h.childById!ComboBox("select");
+		
+		switch(to!ComboBox(src).selectedItem) {
+			case "Tutto"d:
+				b.items = ["progetto"d, "utente"d, "categoria"d];
+				h.removeChild("select");
+				break;
+			case "utente"d:
+				b.items = ["progetto"d, "categoria"d];
+				dstring[] items = [];
+				for(int i=0; i< Local.getAllUsers().length; ++i) {
+					items ~= to!dstring(Local.getAllUsers()[i]);
+					if( Local.getCurrentUser == Local.getAllUsers()[i]) {
+						combo.items = items;
+						combo.selectedItemIndex = i;
+					}
+				}
+				combo.items = items;
+				break;
+			case "progetto"d:
+				b.items = [ "utente"d, "categoria"d];
+				dstring[] items = [];
+				foreach( ref p; Local.getProjects) {
+					items ~= to!dstring(p.name);
+				}
+				combo.items = items;
+				break;
+			case "categoria"d:
+				b.items = ["progetto"d, "utente"d];
+				dstring[] items = [];
+				foreach( ref c ; Local.getCategories) {
+					items ~= to!dstring(c.name);
+				}
+				combo.items = items;
+				break;
+			default:
+				throw new Exception( "What the hell happened to the comboBox?!?!");
+		}
+	
+		return true;
+	}
+}
+
+class GraphGenerator : OnClickHandler {
+
+	private {
+		VerticalLayout v;
+	}
+	
+	this(VerticalLayout ver) {
+		 v = ver;
+	}
+	
+	override bool onClick(Widget src) {
+		import Sessions;
+		const(Session)[] sessioni = [];
+		
+		bool cost = v.childById!CheckBox("cost").checked;
+		
+		switch(v.childById!ComboBox("what").selectedItem) {
+			case "Tutto"d: 
+				sessioni = Local.getAllSessions();
+				break;
+			case "utente"d:
+				sessioni = Local.getSessions(to!string(v.childById!ComboBox("select").selectedItem));
+				break;
+			case "progetto"d:
+				auto all = Local.getAllSessions();
+				ulong p = Local.getProjectId(to!string(v.childById!ComboBox("select").selectedItem));
+				foreach(ref s; all) {
+					if( s.projectID == p ) sessioni ~= s;
+				}
+				break;
+			case "categoria"d:
+				auto all = Local.getAllSessions();
+				foreach(ref s; all) {
+					if(s.category == to!string(v.childById!ComboBox("select").selectedItem)) sessioni ~= s;
+				}
+				break;
+			default:
+				throw new Exception("ComboBox is weird" );
+		}
+		
+		uint[string] bars; //in minuti
+		uint[string] costs; //in centesimi
+		bool tantum = false;
+		foreach(ref s ; sessioni) {
+			Tantum t = cast(Tantum)(s);
+			if( t is null) {
+				if(!cost) continue; //we don't care about these
+			}
+			string key = null;
+			switch(v.childById!ComboBox("group").selectedItem) {
+				case "progetto"d:
+					key = Local.getProject(s.projectID).name;
+					break;
+				case "utente"d:
+					key = s.user;
+					break;
+				case "categoria"d:
+					key = s.category;
+					break;
+				default:
+					throw new Exception( "Again crazy comboBox");
+			}
+			
+			auto check = key in bars;
+			if(!check) {
+				bars[key] = 0;
+				if(tantum && cost) costs[key] = 0;
+			}
+			if(t is null) {
+				int min = to!uint(s.duration[0..2]) *60 + to!uint(s.duration[3..5]);
+				bars[key] += min;
+			} else { //then add costs
+				costs[key] += t.cost();
+			}
+		
+		}//end foreach
+		
+		//now the 2 associative array represents the bars
+		
+		auto time = v.childById!SimpleBarChart("time");
+		if(time is null) {
+			time = new SimpleBarChart("time", "Conteggio Ore"d);
+			v.addChild(time);
+		}  
+		
+		auto costo  = v.childById!SimpleBarChart("costi");
+		if(cost) {
+			if( costo is null) {
+				costo = new SimpleBarChart("costi", "Conteggio Costi"d);
+				v.addChild(costo);
+			}
+		} else {
+			if(costo !is null) v.removeChild(costo);
+		}
+		
+		uint color = 10;
+		foreach( key, value; bars) {
+			time.addBar(value, color, to!dstring(key));
+			++color;
+		}
+		
+		if(cost) {
+			color = 10;
+			foreach(key, value; costs) {
+				costo.addBar(value, color, to!dstring(key));
+				++color;
+			}
+		}
+	
+		return true;
+	}
+
 }
 
 //to use in normal UI to save the selection of the 3 dropdown menu;
@@ -819,33 +1103,13 @@ void loadState (ComboBox proj, ComboBox cat, ComboBox user) {
 	}
 }
 
-class UpdateNormalUISelection : OnItemSelectedHandler {
-
-	private{
-		ComboBox proj, cat, user;
-	}
-	
-	this( ComboBox p, ComboBox c, ComboBox u) {
-		proj = p;
-		cat = c;
-		user = u;
-	}
-
-	override bool onItemSelected( Widget src, int itemIndex) {
-		
-		saveState(proj, cat, user);
-		
-		return true;
-	}
-}
-
 class InactivityWidget {
 	import std.datetime.stopwatch: StopWatch, AutoStart;
 	import std.stdio;
 	import dlangui.dialogs.msgbox;
 	
 	private {
-		uint timerLimit = 60000; //time in milliseconds
+		uint timerLimit = 30000; //time in milliseconds
 		Window win;
 		StopWatch watch, timer;
 		ulong sessionID;
@@ -853,24 +1117,26 @@ class InactivityWidget {
 		MessageBox msg = null;
 		uint updateFactor = 2; //this will be used to update messageBox
 		StringGridWidget grid = null;
+		Button stopBtn;
 	}
 	
 	this(Window w) {
 		win = w;
-		watch.stop();
-		watch.reset();
 		timer.stop();
 		timer.reset();
+		watch.stop();
+		watch.reset();
 		sessionID =0;
 	}
 	
-	void onTimer() {
+	void onTimer( ushort time) {
 		//writeln("#################################### onTimer");
 		if(first)  {
 			first = false;
-			Local.stopSession(sessionID);
+			stopBtn.simulateClick();//this stops the session
+			//Local.stopSession(sessionID);
 			msg = new MessageBox(UIString.fromRaw("Inattività"d), UIString.fromRaw("Sei stato inattivo per 1 minuto. Cosa vuoi fare con questo tempo?"d), win,
-				[new Action(1,"Crea nuova sessione"d), new Action(2,"Tieni questo tempo nella sessione ora attiva"d), new Action(3,"Butta via questo tempo"d)], 0,
+				[new Action(1,"Crea nuova sessione"d), new Action(2,"Tieni questo tempo nella sessione ora attiva"d), new Action(3,"Ignora questo tempo"d)], 0,
 				delegate(const(Action) result) {
 					scope(exit) {
 						msg = null; //destroy the messageBox
@@ -878,6 +1144,8 @@ class InactivityWidget {
 						updateFactor = 2;
 						sessionID =0;
 						//writeln("######################### resetting sessionID to 0");
+						watch.stop();
+						watch.reset();
 					}
 					
 					switch(result.id) {
@@ -885,10 +1153,10 @@ class InactivityWidget {
 						case 1:
 							import std.datetime.systime : SysTime, Clock;
 							import core.time: dur;
-							SysTime currentTime = Clock.currTime() - dur!"minutes"(watch.peek.total!"minutes");
+							SysTime currentTime = Clock.currTime() - dur!"minutes"(time);
 							
 							ushort hours, minutes;
-							minutes = to!ushort(watch.peek.total!"minutes");
+							minutes = time;
 							hours = minutes /60;
 							minutes %= 60;
 							string duration = "";
@@ -902,7 +1170,7 @@ class InactivityWidget {
 						case 2:
 							auto desc = Local.sessionDescription(sessionID);
 							auto duration = desc["duration"];
-							ushort minutes = to!ushort(watch.peek.total!"minutes" -1);//take away the minute before stopping the session
+							ushort minutes = to!ushort(time -1);//take away the minute before stopping the session
 							ushort hours = minutes / 60;
 							minutes = minutes % 60;
 							
@@ -937,31 +1205,24 @@ class InactivityWidget {
 							throw new Exception("unknown action in reply to message box");
 					}
 					
-					
 					return true;
 				});
 			msg.show();
 		} else {
 			//writeln("################################### updating message");
 			//writeln("################################# time elapsed : ", watch.peek.total!"minutes");
-			msg.message = "Sei stato inattivo per "d ~ to!dstring(watch.peek.total!"minutes")~ " minuti. Cosa vuoi fare con questo tempo?"d;
+			msg.message = "Sei stato inattivo per "d ~ to!dstring(time)~ " minuti. Cosa vuoi fare con questo tempo?"d;
 			//msg.show();
 		}
 		
 		
 	}
 	
-	void resetTimer() {
-		if(timer.running && msg is null) startTimer(sessionID); //reset timer if it's running and no message box is being displayed
-	}
 	
 	void startTimer(ulong ses) {
 		timer.stop();
 		timer.reset();
 		timer.start();
-		watch.stop();
-		watch.reset();
-		watch.start();
 		sessionID = ses;
 	}
 	
@@ -969,11 +1230,41 @@ class InactivityWidget {
 		if(timer.peek.total!"msecs" >= timerLimit) { //if enough time elapsed;
 			timer.stop();
 			timer.reset();
-			onTimer();
+			
+			//now check idle time
+			import Utility: getCurrentPath;
+			import std.process: executeShell;
+			import std.algorithm.searching: canFind;
+			import std.file: readText;
+			
+			
+			string program = "./Resources/SystemIdleTime";
+			string file = getCurrentPath ~ "SystemPause";
+			
+			for (ushort i =0; i < 10; ++i) {
+				auto output = executeShell(program);
+				if( !( canFind( output.output, "error") || output.status != 0 || canFind(readText(file), "nil")  )) {
+					break;
+				}
+			}
+			
+			float time = 0.0;
+			if(readText(file) != "nil")
+				time = to!float(readText(file));
+			
+			if(time > 60) {
+				onTimer(to!ushort(time / 60.0));
+				watch.start();
+			} else {
+				timer.start();
+			}
+			
+			writeln("############################### idle time : ", time);
 		}
-		if(!first && watch.peek.total!"msecs" >= updateFactor * timerLimit) {
+		
+		if( watch.running && watch.peek.total!"msecs" >= updateFactor * timerLimit) {
 			++updateFactor;
-			onTimer();
+			onTimer(to!ushort(watch.peek.total!"minutes"));
 		}
 	}
 	
@@ -981,4 +1272,243 @@ class InactivityWidget {
 		grid = g;
 	}
 	
+	void setButton( Button st) {
+		stopBtn = st;
+	}
+	
+}
+
+class MenuBarInteraction {
+	//all messages must be of the form:
+	// commmand@arg1__arg2__arg3 ...
+	// if no argument is required then @ can be omitted
+	
+	import std.socket;
+	import std.concurrency;
+	import std.stdio;
+	
+	static:
+	
+	private {
+	__gshared{
+		string message = null; 
+		bool received = false;
+		bool menuBarRunning = false;
+	}
+		Tid receiveTid, swiftTid;
+		Window window = null;
+		ushort menuBarPort = 2121;
+		ushort myPort = 2122;
+		bool ignoreNextInput = false;
+	}
+	
+	void setWindow (Window win) {
+		window = win;	
+	}
+	
+	bool isMenuBarRunning() {
+		return menuBarRunning;
+	}
+	
+	void start() {
+		getSettings();
+		receiveTid = spawn(&listen, myPort);
+		spawn(&launchMenuBar);
+	}
+	
+	void update() {
+		if( received) {
+			writeln(receive);
+		}
+	}
+	
+	void quit() {
+
+		if(menuBarRunning) {
+			send("quit"); //sends quit to menuBar
+			return; //menu bar will reply with a quit as well
+		}
+		
+		auto socket = new Socket(AddressFamily.INET, SocketType.STREAM, ProtocolType.TCP);
+		socket.blocking = true;
+		try {
+			socket.connect(getAddress("localhost", myPort)[0]);
+		} catch (SocketOSException ex) {
+			writeln("############################## exception port for this program: ", ex.msg);
+			return;
+		}
+		socket.send("quit");//sends quit to listen process
+		
+	}
+	
+	void changeProjects() {
+		//to call when there is some changes with the projects
+		if(ignoreNextInput) {
+			ignoreNextInput = false;
+			return;
+		}
+		if(menuBarRunning) send("update");
+	}
+	
+	void startSession(string projName ) {
+		//to call when a new session is started
+		if(ignoreNextInput) {
+			ignoreNextInput = false;
+			return;
+		}
+		if(menuBarRunning) send("start@"~projName);
+	}
+	
+	void startSession(ulong projID) {
+		startSession( Local.getProject(projID).name);
+	} 
+	
+	void stopSession(string projName) {
+		//to call when a session is stopped
+		if(ignoreNextInput) {
+			ignoreNextInput = false;
+			return;
+		}
+		if(menuBarRunning) send("stop@"~projName);
+	}
+	
+	void stopSession(ulong projID) {
+		stopSession( Local.getProject(projID).name);
+	}
+	
+	private void getSettings() {
+		
+		import Utility: getCurrentPath;
+		import std.file: readText;
+		import std.json;
+		
+		auto file =  getCurrentPath ~ "settings";
+		auto json = parseJSON(readText(file));
+	
+		myPort = to!ushort(json["OMPort"].integer);
+		menuBarPort = to!ushort(json["menuBarPort"].integer);
+		
+	}
+	
+	private void launchMenuBar() {
+		import Utility: getCurrentPath;
+		import std.process: executeShell; 
+		import std.algorithm.searching: canFind;
+		
+		string program = "./Resources/MenuBarOfficeManager.app/Contents/MacOS/MenuBarOfficeManager";
+		menuBarRunning = true;
+		auto output = executeShell(program);
+		if( canFind(output.output, "error") || output.status != 0) {
+			throw new Exception("Cannot execute properly the menu bar program");
+		}
+		menuBarRunning = false;
+	}
+	
+	private void listen(ushort port) { //listen on port myPort
+		auto socket = new Socket(AddressFamily.INET, SocketType.STREAM, ProtocolType.TCP);
+		socket.blocking = true;
+		socket.bind(getAddress("localhost", port)[0]);
+		//writeln("################################ server on port: ", port);
+		socket.listen(0);
+		writeln("########################## listen ok");
+		
+		while(true) {
+			auto client = socket.accept();
+			//writeln("############################# local address ", client.localAddress);
+			//writeln("############################# remote address ", client.remoteAddress);
+			auto buffer = new char[1024]; //max message is 1024 long
+			long bytes = client.receive(buffer);
+			message = to!string(buffer[ 0 .. bytes]);
+			//writeln("########################## message ", message);
+			if(message == "quit" ) break;
+			received = true;	
+		}
+		
+		scope(exit) {
+			writeln("################################ stop listening");
+		}
+	}
+	
+	private string receive() {
+		writeln("######################## received message ");
+		if(!received) return "nothing";
+		else {
+			received = false;
+			handleMessage();
+			return message;
+		}
+	}
+	
+	private void send(string msg) { //sends message on port for menu bar
+		writeln("########################### seding ", msg);
+		auto send = new Socket(AddressFamily.INET, SocketType.STREAM, ProtocolType.TCP);
+		send.blocking = true;
+		int i =0;
+		try {
+			send.connect(getAddress("localhost", menuBarPort)[0]);
+		} catch (SocketOSException ex) {
+			writeln("################################# exception connecting to menu bar: ", ex.msg);
+			return;
+		}
+		
+		for(; i< 20; ++i) {
+			auto result = send.send(msg);
+			if(result != Socket.ERROR && result == msg.length) {
+				break;
+			}
+		}
+		
+		if(i == 20) {
+			throw new Exception("Didn't manage to send");
+		}
+	}
+	
+	private void handleMessage() {
+		//do something according to what you receive
+		import std.string : indexOf;
+		import std.algorithm.searching: canFind;
+		
+		string command = message.indexOf("@") == -1 ? message : message[ 0 .. message.indexOf("@")];
+		
+		Widget main = window.mainWidget;
+		
+		switch (command) {
+			case "quitAll" : 
+				window.close();
+				break;
+			case "start" :
+				string projName = message[message.indexOf("@")+1 .. $];
+				Button btn = main.childById!Button("playbtn");
+				if( btn !is null){ //this is normalUI
+					auto projBox = main.childById!ComboBox("projdd");
+					auto catBox = main.childById!ComboBox("catdd");
+					catBox.selectedItemIndex = 0;
+					for(int i =0; i<projBox.items.length; ++i) {
+						string title = to!string(projBox.items[i].value);
+						if(title.canFind(projName)) {
+							projBox.selectedItemIndex = i;
+							break;
+						}
+					}
+					ignoreNextInput = true;
+				 	btn.simulateClick();
+				}
+				else Local.startSession(Local.getProjectId(projName));
+				break;
+			case "stop" :
+				string projName = message[message.indexOf("@")+1 .. $];
+				Button btn = main.childById!Button("playbtn");
+				if( btn !is null && btn.text == "Stop Session"d){ //this is normalUI and button will stop the session
+					ignoreNextInput = true;
+				 	btn.simulateClick();
+				}
+				else Local.stopSessionByProject(Local.getProjectId(projName));
+				break;
+			default:
+				writeln("######################### unknown message ", message);
+		}
+		
+	}
+
+
 }
