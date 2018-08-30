@@ -2,6 +2,7 @@ import dlangui;
 import main; //here are UI function
 import Local: Local;
 import std.conv: to;
+//import std.stdio;
 
 /*
 	Here we build the classes to handle actions and clicks
@@ -17,6 +18,7 @@ class MyMenuActionHandler : MenuItemActionHandler {
 	}
     	
     override bool onMenuItemAction (const(Action) action) {
+    	try {
     	switch( action.id) {
     			
     		case 11: //Logout
@@ -57,8 +59,12 @@ class MyMenuActionHandler : MenuItemActionHandler {
     		case 34: //menu bar options
     			menuBarUI(*_window);
     			break;
+    			
     		default:
-				//nothing
+    		//nothing
+    	} } catch (Exception e) {
+    		error(e.msg, *_window);
+    		return false;
     	}
     		
     	return true;
@@ -89,7 +95,7 @@ class LoginClick : OnClickHandler {
 		import std.stdio;
 		auto tuple = Local.login(to!string(user.text),to!string(pass.text));
 		if(tuple[0] == false) {
-			writeln(tuple);
+			error(tuple[1], *_win);
 			return false;
 		}
 		Local.initialise();
@@ -281,7 +287,7 @@ class CreateSession : OnClickHandler {
 	 	if(! tantum.checked) { //create Session
 	 		ulong sessionID = Local.createSession(Local.getProjectId(to!string(proj.selectedItem)), date,to!string(user.selectedItem ), to!string(desc.text), Local.getCategory(to!string(cat.selectedItem)));
 	 		string durata = to!string(durataH.selectedItem)~":"~to!string(durataM.selectedItem);
-	 		Local.editSession(sessionID, 0, null, null, durata );
+	 		Local.editSession(sessionID,to!string(user.selectedItem), 0, null, null, durata );
 	 	} else  { //create Tantum
 	 		Local.createTantum (Local.getProjectId(to!string(proj.selectedItem)), date,to!string(user.selectedItem ), to!ushort(costo.text), tassabile.checked, to!string(desc.text), Local.getCategory(to!string(cat.selectedItem)));
 	 	}
@@ -405,7 +411,8 @@ class DeleteUser: OnClickHandler {
 				if(result.id == 1){
 					auto outcome = Local.deleteUser(to!string(userName.text));
 					if(!outcome[0]) {
-						throw new Exception(outcome[1]);
+						error(outcome[1], win);
+						return false;
 					}
 				}
 				
@@ -434,12 +441,14 @@ class ChangePassword: OnClickHandler {
 		if( to!string(user.text) == Local.getCurrentUser) {
 			auto outcome = Local.changeOwnPassword(to!string(pass.text));
 			if(!outcome[0]) {
-				throw new Exception( outcome[1]);
+				error(outcome[1], src.window);
+				return false;
 			}
 		} else {
 			auto outcome = Local.forgotPassword(to!string(user.text), to!string(pass.text));
 			if(!outcome[0]) {
-				throw new Exception( outcome[1]);
+				error(outcome[1], src.window);
+				return false;
 			}
 		}
 		
@@ -469,7 +478,8 @@ class ChangeRole : OnClickHandler {
 		auto outcome = Local.changeRole(to!string(user.text), to!string(role.selectedItem));
 		
 		if(!outcome[0]) {
-			throw new Exception(outcome[1]);
+			error(outcome[1], src.window);
+			return false;
 		}
 	
 		return handler.onItemSelected(userBox,userBox.selectedItemIndex); //this will update info on screen
@@ -501,7 +511,8 @@ class NewUser: OnClickHandler {
 	override bool onClick(Widget src) {
 		auto outcome = Local.createUser(to!string(user.text), to!string(password.text), to!string(role.selectedItem));
 		if(!outcome[0]) {
-			throw new Exception(" failed to create user " ~ outcome[1]);
+			error("failed to create user: " ~ outcome[1], src.window);
+			return false;
 		}
 		
 		auto back = new BackClick(win);
@@ -943,7 +954,8 @@ class UpdateGroupSelection : OnItemSelectedHandler {
 				combo.items = items;
 				break;
 			default:
-				throw new Exception( "What the hell happened to the comboBox?!?!");
+				error("ComboBox of UpdateGroupSelection has unexpected items", src.window);
+				return false;
 		}
 	
 		return true;
@@ -987,15 +999,18 @@ class GraphGenerator : OnClickHandler {
 				}
 				break;
 			default:
-				throw new Exception("ComboBox is weird" );
+				error("ComboBox `what` of GraphGenerator has unexpected items", src.window);
+				return false;
 		}
+		
 		
 		uint[string] bars; //in minuti
 		uint[string] costs; //in centesimi
 		bool tantum = false;
 		foreach(ref s ; sessioni) {
+			
 			Tantum t = cast(Tantum)(s);
-			if( t is null) {
+			if( t !is null) {
 				if(!cost) continue; //we don't care about these
 			}
 			string key = null;
@@ -1010,7 +1025,8 @@ class GraphGenerator : OnClickHandler {
 					key = s.category;
 					break;
 				default:
-					throw new Exception( "Again crazy comboBox");
+					error("ComboBox `group` of GraphGenerator has unexpected items", src.window);
+					return false;
 			}
 			
 			auto check = key in bars;
@@ -1027,41 +1043,89 @@ class GraphGenerator : OnClickHandler {
 		
 		}//end foreach
 		
+		//writeln("############################## bars: ", bars);
+		//writeln("############################## costs: ", costs);
 		//now the 2 associative array represents the bars
-		
-		auto time = v.childById!SimpleBarChart("time");
-		if(time is null) {
+		auto h1 = v.childById!HorizontalLayout("timeL");
+		SimpleBarChart time = null;
+		StringGridWidget timeGrid = null;
+		if(h1 is null) {
+			h1 = new HorizontalLayout("timeL");
+			h1.layoutWidth(FILL_PARENT);
+			v.addChild(h1);
 			time = new SimpleBarChart("time", "Conteggio Ore"d);
-			v.addChild(time);
-		}  
-		
-		auto costo  = v.childById!SimpleBarChart("costi");
-		if(cost) {
-			if( costo is null) {
-				costo = new SimpleBarChart("costi", "Conteggio Costi"d);
-				v.addChild(costo);
-			}
+			h1.addChild(time);
+			timeGrid = new StringGridWidget("timeGrid");
+			h1.addChild(timeGrid);
 		} else {
-			if(costo !is null) v.removeChild(costo);
+			time = h1.childById!SimpleBarChart("time");
+			time.removeAllBars();
+			timeGrid = h1.childById!StringGridWidget("timeGrid");
 		}
+		timeGrid.rows = 0;
+		timeGrid.cols = 2;	
+		timeGrid.setColTitle(1, "tempo"d);
+		timeGrid.setColTitle(0,v.childById!ComboBox("group").selectedItem);
+		
+		auto h2 = v.childById!HorizontalLayout("costL");
+		SimpleBarChart costo  = null;
+		StringGridWidget costoGrid= null;
+		if(cost) {
+			if( h2 is null) {
+				h2 = new HorizontalLayout("costL");
+				h2.layoutWidth(FILL_PARENT);
+				costo = new SimpleBarChart("costi", "Conteggio Costi"d);
+				v.addChild(h2);
+				h2.addChild(costo);
+				costoGrid = new StringGridWidget("costoGrid");
+				h2.addChild(costoGrid);
+			} else {
+				costo = h2.childById!SimpleBarChart("costi");
+				costo.removeAllBars();
+				costoGrid = h2.childById!StringGridWidget("costoGrid");
+			}
+			costoGrid.rows = 0;
+			costoGrid.cols = 2;
+			costoGrid.setColTitle(1,"costo"d);
+			costoGrid.setColTitle(0,v.childById!ComboBox("group").selectedItem);
+		} else {
+			if(h2 !is null) v.removeChild(h2);
+		}
+		
+		
 		
 		uint color = 10;
 		foreach( key, value; bars) {
 			time.addBar(value, color, to!dstring(key));
-			++color;
+			timeGrid.rows = timeGrid.rows +1;
+			timeGrid.setRowTitle(timeGrid.rows-1, to!dstring(timeGrid.rows));
+			timeGrid.setCellText(0,timeGrid.rows-1, to!dstring(key));
+			timeGrid.setCellText(1,timeGrid.rows-1, to!dstring(value/60)~"h"d ~ " " ~ to!dstring(value%60)~"min"d);
+			color += 100;
 		}
+		timeGrid.autoFit;
 		
 		if(cost) {
 			color = 10;
 			foreach(key, value; costs) {
 				costo.addBar(value, color, to!dstring(key));
-				++color;
+				costoGrid.rows = costoGrid.rows +1;
+				costoGrid.setRowTitle(costoGrid.rows-1, to!dstring(costoGrid.rows));
+				costoGrid.setCellText(0,costoGrid.rows-1, to!dstring(key));
+				costoGrid.setCellText(1,costoGrid.rows-1, to!dstring(value/100.0) ~"€"d);
+				color += 100;
 			}
+			costoGrid.autoFit;
 		}
 	
 		return true;
 	}
 
+}
+
+//to use in order to display error messages
+void error(const string message, Window win) {
+	win.showMessageBox("Errore"d,"Il programma ha ricevuto un errore col sequente messaggio:\n"d~ to!dstring(message) );
 }
 
 //to use in normal UI to save the selection of the 3 dropdown menu;
@@ -1286,6 +1350,7 @@ class MenuBarInteraction {
 	import std.socket;
 	import std.concurrency;
 	import std.stdio;
+	import Utility: getCurrentPath;
 	
 	static:
 	
@@ -1313,7 +1378,7 @@ class MenuBarInteraction {
 	void start() {
 		getSettings();
 		receiveTid = spawn(&listen, myPort);
-		spawn(&launchMenuBar);
+		swiftTid = spawn(&launchMenuBar);
 	}
 	
 	void update() {
@@ -1395,7 +1460,7 @@ class MenuBarInteraction {
 		import std.process: executeShell; 
 		import std.algorithm.searching: canFind;
 		
-		string program = "./Resources/MenuBarOfficeManager.app/Contents/MacOS/MenuBarOfficeManager";
+		string program = getCurrentPath()~"MenuBarOfficeManager.app/Contents/MacOS/MenuBarOfficeManager";
 		menuBarRunning = true;
 		auto output = executeShell(program);
 		if( canFind(output.output, "error") || output.status != 0) {
@@ -1459,7 +1524,8 @@ class MenuBarInteraction {
 		}
 		
 		if(i == 20) {
-			throw new Exception("Didn't manage to send");
+			error("MenuBar is not responding properly: cannot send them a message", window);
+			return;
 		}
 	}
 	

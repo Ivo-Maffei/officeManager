@@ -1,6 +1,6 @@
 {
+    "OMPort": 3122,
     "host": "127.0.0.1",
     "menuBar": true,
-    "menuBarPort": 3121,
-    "OMPort": 3122
+    "menuBarPort": 3121
 }

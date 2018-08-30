@@ -51,7 +51,7 @@ class Server {
 		auto buffer = new char[1024]; //max message is 1024 long
 		long bytes = client.receive(buffer);
 		string message = to!string(buffer[ 0 .. bytes]);
-		log(to!string(client.remoteAddress) ~ " sent message: ", message);
+		log(to!string(client.remoteAddress) ~ " sent message: " ~ message);
 		
 		//now handle message
 		//messages are of the form :
@@ -70,7 +70,11 @@ class Server {
 				if(args != "passwords") {
 					string user = message[0 .. message.indexOf(":")];
 					string password = message[message.indexOf(":")+1 .. at1];
-					mongo.connect(user, password);
+					try{
+						mongo.connect(user, password);
+					} catch (Exception e) {
+						log(user~" failed to connect to MongoDB error: "~to!string(e.msg));
+					}
 					log(user ~ " connected to mongo");
 					
 					JSONValue[] list = [];
@@ -99,15 +103,21 @@ class Server {
 				
 				string user = message[0 .. message.indexOf(":")];
 				string password = message[message.indexOf(":")+1 .. at1];
-				mongo.connect(user,password); //login
+				try{
+					mongo.connect(user, password);
+				} catch (Exception e) {
+					log(user~" failed to connect to MongoDB error: "~to!string(e.msg));
+				}
 				log(user ~ " connected to mongo");
 				
 				mongo.syncSessions(args);
 				log(user ~ "'s' sessions synced");
+				client.send("\n");
 				break;
 		}
 		
 		mongo.disconnect();
+		log("### connection with "~to!string(client.remoteAddress)~" terminated");
 		
 	}
 }

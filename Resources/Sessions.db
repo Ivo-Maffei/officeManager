@@ -1,0 +1,120 @@
+{
+    "_id": 636711299779441190,
+    "archived": false,
+    "category": "None",
+    "cost": 123,
+    "dateTime": "2018-01-01T00:00:00",
+    "description": "",
+    "duration": "none",
+    "place": "",
+    "project": 636710481913420290,
+    "tantum": true,
+    "taxable": false,
+    "user": "puci"
+}{
+    "_id": 636711299923843900,
+    "archived": false,
+    "category": "None",
+    "cost": 22,
+    "dateTime": "2018-01-01T00:00:00",
+    "description": "",
+    "duration": "none",
+    "place": "",
+    "project": 636710481913420290,
+    "tantum": true,
+    "taxable": false,
+    "user": "puci"
+}{
+    "_id": 636711300005460630,
+    "archived": false,
+    "category": "None",
+    "dateTime": "2018-01-01T00:00:00",
+    "description": "",
+    "duration": "06:05",
+    "place": "",
+    "project": 636710481913420290,
+    "tantum": false,
+    "user": "puci"
+}{
+    "_id": 636711300544763120,
+    "archived": false,
+    "category": "None",
+    "dateTime": "2018-01-01T00:00:00",
+    "description": "7h",
+    "duration": "07:00",
+    "place": "",
+    "project": 636710481913420290,
+    "tantum": false,
+    "user": "puci"
+}{
+    "_id": 636711312137221080,
+    "archived": false,
+    "category": "None",
+    "dateTime": "2018-01-01T00:05:00",
+    "description": "",
+    "duration": "03:06",
+    "place": "",
+    "project": 636710481913420290,
+    "tantum": false,
+    "user": "puci"
+}{
+    "_id": 636711315548815910,
+    "archived": false,
+    "category": "None",
+    "dateTime": "2018-01-01T00:00:00",
+    "description": "",
+    "duration": "09:00",
+    "place": "",
+    "project": 636711315429407990,
+    "tantum": false,
+    "user": "puci"
+}{
+    "_id": 636711318599441270,
+    "archived": false,
+    "category": "None",
+    "dateTime": "2018-01-01T00:00:00",
+    "description": "3h 20m",
+    "duration": "03:20",
+    "place": "",
+    "project": 636710481913420290,
+    "tantum": false,
+    "user": "puci"
+}{
+    "_id": 636711319566294770,
+    "archived": false,
+    "category": "None",
+    "dateTime": "2018-01-01T00:04:00",
+    "description": "",
+    "duration": "01:00",
+    "place": "",
+    "project": 636710481913420290,
+    "tantum": false,
+    "user": "puci"
+}
+{
+    "_id": 636711320558604620,
+    "archived": false,
+    "category": "None",
+    "dateTime": "2018-01-01T00:00:00",
+    "description": "",
+    "duration": "06:00",
+    "place": "",
+    "project": 636710481913420290,
+    "tantum": false,
+    "user": "puci"
+}
+
+{
+    "_id": 636711489943412960,
+    "archived": false,
+    "category": "None",
+    "cost": 10000,
+    "dateTime": "2018-01-01T00:00:00",
+    "description": "",
+    "duration": "none",
+    "place": "",
+    "project": 636711315429407990,
+    "tantum": true,
+    "taxable": false,
+    "user": "puci"
+}

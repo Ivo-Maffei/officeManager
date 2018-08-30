@@ -1,5 +1,87 @@
-2018-08-28T15:27:04.175552 @ ########################### Application is started
-2018-08-28T15:27:04.176127 @ ########################### arguments:
-2018-08-28T15:27:04.182115 @ ########################### port: 2121, db: 127.0.0.1, log: ./prova.log
-2018-08-28T15:27:04.182369 @ #### server started
-2018-08-28T15:27:04.185264 @ #### server is listening on port 2121
+2018-08-30T16:11:03.343705 @ ########################### Application is started
+2018-08-30T16:11:03.344452 @ ########################### arguments:
+2018-08-30T16:11:03.350562 @ ########################### port: 27018, db: 127.0.0.1, log: prova.log
+2018-08-30T16:11:03.350986 @ #### server started
+2018-08-30T16:11:03.354969 @ #### server is listening on port 27018
+2018-08-30T16:11:24.631909 @ ########################### Application is started
+2018-08-30T16:11:24.632341 @ ########################### arguments:
+2018-08-30T16:11:24.63828 @ ########################### port: 27018, db: 127.0.0.1, log: prova.log
+2018-08-30T16:11:24.638516 @ #### server started
+2018-08-30T16:11:24.641718 @ #### server is listening on port 27018
+2018-08-30T16:11:39.006139 @ #### server received connection from 127.0.0.1:59662
+2018-08-30T16:11:39.006632 @ 127.0.0.1:59662 sent message: puci:1234@get@projects
+2018-08-30T16:11:39.030728 @ connected to MongoDB using user puci
+2018-08-30T16:11:39.030968 @ puci connected to mongo
+2018-08-30T16:11:39.031342 @ puci: retrieved projects info
+2018-08-30T16:11:39.031952 @ puci obtained projects from database
+2018-08-30T16:11:39.032155 @ server sent projects to puci
+2018-08-30T16:11:39.032386 @ puci: disconnected from MongoDB
+2018-08-30T16:11:39.032625 @ ### connection with 127.0.0.1:59662 terminated
+2018-08-30T16:11:39.035045 @ #### server received connection from 127.0.0.1:59664
+2018-08-30T16:11:39.035379 @ 127.0.0.1:59664 sent message: puci:1234@get@categories
+2018-08-30T16:11:39.05472 @ connected to MongoDB using user puci
+2018-08-30T16:11:39.054969 @ puci connected to mongo
+2018-08-30T16:11:39.055315 @ puci: retrieved categories info
+2018-08-30T16:11:39.055852 @ puci obtained categories from database
+2018-08-30T16:11:39.056042 @ server sent categories to puci
+2018-08-30T16:11:39.056281 @ puci: disconnected from MongoDB
+2018-08-30T16:11:39.056519 @ ### connection with 127.0.0.1:59664 terminated
+2018-08-30T16:11:47.904923 @ #### server received connection from 127.0.0.1:59672
+2018-08-30T16:11:47.90552 @ 127.0.0.1:59672 sent message: puci:1234@get@projects
+2018-08-30T16:11:47.930945 @ connected to MongoDB using user puci
+2018-08-30T16:11:47.931193 @ puci connected to mongo
+2018-08-30T16:11:47.931366 @ puci: retrieved projects info
+2018-08-30T16:11:47.931833 @ puci obtained projects from database
+2018-08-30T16:11:47.932009 @ server sent projects to puci
+2018-08-30T16:11:47.932222 @ puci: disconnected from MongoDB
+2018-08-30T16:11:47.932428 @ ### connection with 127.0.0.1:59672 terminated
+2018-08-30T16:11:47.935333 @ #### server received connection from 127.0.0.1:59674
+2018-08-30T16:11:47.935849 @ 127.0.0.1:59674 sent message: puci:1234@newSession@
+{
+	"_id": 636712351079041024,
+	"category": "None",
+	"dateTime": "2018-08-30T14:11:43",
+	"description": "",
+	"duration": "00:00",
+	"project": 636698383859411630,
+	"status": "new",
+	"tantum": false,
+	"user": "puci"
+}
+2018-08-30T16:11:47.958741 @ connected to MongoDB using user puci
+2018-08-30T16:11:47.958997 @ puci connected to mongo
+2018-08-30T16:11:47.959133 @ puci: syncing sessions
+2018-08-30T16:11:47.961922 @ puci: serverResponse: {"n":1,"ok":1}
+2018-08-30T16:11:47.962104 @ puci's' sessions synced
+2018-08-30T16:11:47.962276 @ puci: disconnected from MongoDB
+2018-08-30T16:11:47.962479 @ ### connection with 127.0.0.1:59674 terminated
+2018-08-30T16:12:14.157632 @ #### server received connection from 127.0.0.1:59683
+2018-08-30T16:12:14.158206 @ 127.0.0.1:59683 sent message: puci:1234@get@projects
+2018-08-30T16:12:14.183484 @ connected to MongoDB using user puci
+2018-08-30T16:12:14.183736 @ puci connected to mongo
+2018-08-30T16:12:14.18389 @ puci: retrieved projects info
+2018-08-30T16:12:14.184439 @ puci obtained projects from database
+2018-08-30T16:12:14.184647 @ server sent projects to puci
+2018-08-30T16:12:14.18483 @ puci: disconnected from MongoDB
+2018-08-30T16:12:14.185345 @ ### connection with 127.0.0.1:59683 terminated
+2018-08-30T16:12:14.193336 @ #### server received connection from 127.0.0.1:59685
+2018-08-30T16:12:14.193826 @ 127.0.0.1:59685 sent message: puci:1234@newSession@
+
+{
+	"_id": 636712351341568000,
+	"category": "dummyCat",
+	"dateTime": "2018-08-30T14:12:08",
+	"description": "",
+	"duration": "00:00",
+	"project": 636698383859411630,
+	"status": "new",
+	"tantum": false,
+	"user": "puci"
+}
+2018-08-30T16:12:14.21986 @ connected to MongoDB using user puci
+2018-08-30T16:12:14.220045 @ puci connected to mongo
+2018-08-30T16:12:14.220155 @ puci: syncing sessions
+2018-08-30T16:12:14.22061 @ puci: serverResponse: {"n":1,"ok":1}
+2018-08-30T16:12:14.220732 @ puci's' sessions synced
+2018-08-30T16:12:14.22087 @ puci: disconnected from MongoDB
+2018-08-30T16:12:14.221022 @ ### connection with 127.0.0.1:59685 terminated

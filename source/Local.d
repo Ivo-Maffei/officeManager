@@ -18,6 +18,7 @@ import Utility;
 import std.datetime.stopwatch : StopWatch, AutoStart;
 import std.typecons: Tuple, tuple;
 import std.json;
+//import std.stdio;
 
 alias Outcome = const(Tuple!(bool,string));
 
@@ -43,7 +44,11 @@ static: //this makes the all the member static
 				if(user != null) DB.getSessions(user);
 				else DB.getAllSessions();
 			}
-			
+			if(user == null) {//unknown user; then look through userSessions as well
+				foreach (ref ses; userSessions) {
+					if(ses.ID == sessionID) return ses; //note that ses may actually be a Tantum
+				}
+			}
 			foreach (ref json ; splitJson(readText(SyncLocal.sessionsDB)) ) {
 				auto ses = createSessionFromJson(parseJSON(json));
 				if(ses.ID == sessionID) return  ses;
@@ -692,11 +697,13 @@ static: //this makes the all the member static
 	}
 	
 	Outcome createUser( const string userName, const string password, const string role) {
+		if(offline) return tuple(false, "need to be online to handle users");
 		mixin( doTryCommand("DB.createUser(userName, password, role)","User created") );
 	}
 	
 	Outcome deleteUser( const string userName) {
-	
+		if(offline) return tuple(false, "need to be online to handle users");
+		
 		//delete all sessions associated with that user
 		auto sessions = Local.getSessions(userName);
 		
@@ -709,14 +716,17 @@ static: //this makes the all the member static
 	}
 	
 	Outcome changeOwnPassword(const string newPassword) {
+		if(offline) return tuple(false, "need to be online to handle users");
 		mixin(doTryCommand("DB.changeOwnPassword(newPassword)", "Password changed"));
 	}
 	
 	Outcome forgotPassword(const string user, const string newPassword) {
+		if(offline) return tuple(false, "need to be online to handle users");
 		mixin(doTryCommand("DB.forgotPassword(user, newPassword)", "Password changed"));
 	}
 	
 	Outcome changeRole(const string user, const string newRole) {
+		if(offline) return tuple(false, "need to be online to handle users");
 		mixin(doTryCommand("DB.changeRole(user,newRole)", "Role changed"));
 	}
 	
@@ -842,14 +852,17 @@ static: //this makes the all the member static
 //DIRECT SYNC DATABASE--------------------------------------------------------------------
 
 	void syncDatabase(const bool flag = true) {
+		if(offline) throw new Exception("Cannot sync Database when offline");
 		DB.syncAll(flag);
 	}
 	
 	void syncProjects(const bool changes = true) {
+		if(offline) throw new Exception("Cannot sync Database when offline");
 		DB.syncProjects(changes);
 	}
 	
 	void syncCategories(const bool changes = true) {
+		if(offline) throw new Exception("Cannot sync Database when offline");
 		DB.syncCategories(changes);
 	}
 	
@@ -857,10 +870,12 @@ static: //this makes the all the member static
 		if( user != Login.getUser && !Login.isAdmin) {
 			throw new Exception("Need to be admin to sync someone else sessions");
 		}
+		if(offline) throw new Exception("Cannot sync Database when offline");
 		DB.syncSessions(user, changes);
 	}
 	
 	void syncUsers() {
+		if(offline) throw new Exception("Cannot sync Database when offline");
 		DB.getPasswords();
 	}
 	

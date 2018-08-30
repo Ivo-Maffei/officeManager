@@ -190,7 +190,7 @@ static:
 //SESSIONS HANDLING-----------------------------------------------------------------------
 	const(JSONValue[]) getUserSessions(const string user) {
 		auto collection = _mongoClient.getCollection("officeManager.sessions");
-		auto cursor = collection.find(["user": user]); //return a cursor; something strange see below how to handle it
+		auto cursor = collection.find(["user": Bson(user), "archived" : Bson(false)]); //return a cursor; something strange see below how to handle it
 	
 		return cursorToJSONValue(cursor);
 	}
@@ -198,7 +198,7 @@ static:
 	const(JSONValue[]) getAllSessions() {
 		//Local should ensure that this is called only by admin
 		auto collection = _mongoClient.getCollection("officeManager.sessions");
-		auto cursor = collection.find(); //return a cursor; something strange see below how to handle it
+		auto cursor = collection.find(["archived" : false]); //return a cursor; something strange see below how to handle it
 	
 		return cursorToJSONValue(cursor);
 	}

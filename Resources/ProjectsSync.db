@@ -8,3 +8,13 @@
     "status": "new",
     "sync": false
 }
+
+{
+    "_id": 636711315429407990,
+    "archived": false,
+    "name": "2nd project",
+    "notes": "",
+    "number": 1233,
+    "status": "new",
+    "sync": false
+}

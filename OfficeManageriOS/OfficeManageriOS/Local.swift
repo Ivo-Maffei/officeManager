@@ -15,15 +15,17 @@ func getResourcesPath() -> URL {
 }
 
 func getProjects() -> [String] {
-    var pr = getProjectsWithId()
+    var pr = getProjectsWithId(server: true)
     func first( tuple: (String,String)) -> String {
         return tuple.0
     }
     return (pr.map(first))
 }
 
-func getProjectsWithId() -> [(String, String)] {
-    
+func getProjectsWithId(server: Bool) -> [(String, String)] {
+    if(server) {
+        sync(what: "projects")
+    }
     var path = getResourcesPath()
     path = path.appendingPathComponent("Projects.db")
     
@@ -89,6 +91,8 @@ func splitJsons(_ data: String) -> [String] {
 }
 
 func getCategories() -> [String] {
+    sync(what: "categories")
+    
     var path = getResourcesPath()
     path = path.appendingPathComponent("Categories.db")
     
@@ -118,7 +122,7 @@ func convalidaSessione( user:String, project: String, category: String, descript
     let id = Int((Date().timeIntervalSinceReferenceDate + 63113904000)*10000000)
     
     //get projID from projectName: read from file Projects.db
-    let list = getProjectsWithId()
+    let list = getProjectsWithId(server: false)
     var prId = ""
     for t in list {
         if(t.0 == project) {
@@ -150,10 +154,69 @@ func convalidaSessione( user:String, project: String, category: String, descript
         
     }
     
-    //try to sync
+    sync(what:"sessions")
 }
 
-func connect() {
+func send(_ message: String) -> String { //sends message and return server response
+    var response = Optional("OK")
+    let address = "127.0.0.1"
+    let port :Int32 = 27018
+    do{
+        let socket = try Socket.create()
+        try socket.connect(to: address, port: port)
+        try socket.write(from: message)
+        print("message sent: ",message )
+        response = try socket.readString()
+    }catch {
+        print(error)
+    }
+    if(response == Optional.none) {
+        return "fail"
+    } else {
+        return response!
+    }
+}
+
+func sync( what: String) {
+    var message = "puci"
+    let password = "1234" //get user password
+    var file = getResourcesPath() //file to write to
+    print("now syncing")
+    switch what {
+    case "projects":
+        message = message + ":" + password + "@get@projects"
+        file.appendPathComponent("Projects.db")
+    case "categories":
+        message = message + ":" + password + "@get@categories"
+        file.appendPathComponent("Categories.db")
+    case "passwords":
+        message = message + "@get@passwords"
+        file.appendPathComponent("pass")
+    case "sessions":
+        message = message + ":" + password + "@newSession@"
+        let path = getResourcesPath().appendingPathComponent("SessionsSync.db")
+        file.appendPathComponent("SessionsSync.db")
+        do{
+            let data = try Data(contentsOf: path, options: .mappedIfSafe)
+            let string = String(data: data, encoding: String.Encoding.utf8);
+            message = message + string!
+        } catch {
+            print(error)
+        }
+    default:
+        print("error I don't know what to sync")
+    }
     
-    
+    print("now sending message")
+    let response = send(message)
+    print("response received: ", response)
+    if( response == "fail" ) {
+        //display message that we can't sync
+        return;
+    }
+    do {
+        try response.write(to: file, atomically: false, encoding: String.Encoding.utf8)
+    }catch {
+        print(error)
+    }
 }

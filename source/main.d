@@ -11,8 +11,9 @@ extern (C) int UIAppMain(string[] args) {
     // create window
     Window window = Platform.instance.createWindow("Office Manager", null, WindowFlag.Resizable, 1000,1000);
     window.onClose(delegate () { //sync before closing
-    	Local.syncDatabase();
     	MenuBarInteraction.quit();
+    	try Local.syncDatabase();
+    	catch {}
     });
     
     loginUI(window); //create Login UI
@@ -21,6 +22,7 @@ extern (C) int UIAppMain(string[] args) {
     auto inactivity = new InactivityWidget(window);
     scope(exit) {
     	destroy(inactivity);
+    	MenuBarInteraction.quit();
     }
     
     window.inactivity = inactivity;
@@ -624,7 +626,7 @@ void newSessionUI ( ref Window window, string dateTime, string duration) {
 	t.addChild(new TextWidget(null, "tantum"d));
 	t.addChild(new CheckBox("tantum"));
 	
-	t.addChild(new TextWidget(null, "costo"d));
+	t.addChild(new TextWidget(null, "costo (in centesimi)"d));
 	t.addChild(new EditLine("costo", "0"d));
 	
 	t.addChild(new TextWidget(null, "tassabile"d));
@@ -803,7 +805,7 @@ void editSessionUI (ref Window window, const ulong sessionID) {
 	t.addChild(user);
 	
 	if( info["tantum"] == "true") {
-		t.addChild(new TextWidget(null, "Costo"d));
+		t.addChild(new TextWidget(null, "Costo (in centesimi)"d));
 		auto cost = new EditLine("cost");
 		cost.text = to!dstring(info["cost"]);
 		t.addChild(cost);
@@ -973,13 +975,12 @@ void menuBarUI ( ref Window window){
 	
 	t.addChild(new TextWidget(null, "Mostra Office Manager nella barra dei menu"d));
 	auto menuBar = new CheckBox();
-	//read from settings the state of menuBar
+	menuBar.checked = MenuBarInteraction.isMenuBarRunning;
 	t.addChild(menuBar);
 	
 	t.addChild(new TextWidget(null, "Porte IP che Office Manager può utilizzare"d));
 	auto menuBarPort = new EditLine();
 	menuBarPort.layoutWidth(FILL_PARENT);
-	menuBarPort.checked = MenuBarInteraction.isMenuBarRunning;
 	
 	auto officeManagerPort = new EditLine();
 	officeManagerPort.layoutWidth(FILL_PARENT);
@@ -990,6 +991,7 @@ void menuBarUI ( ref Window window){
 	t.addChild(h);
 	
 	auto done = new Button(null, "OK"d);
+	done.click = new MenuBarSettings(officeManagerPort, menuBarPort, menuBar);
 	t.addChild(done);
 	
 	auto annulla = new Button(null, "Annulla"d);
@@ -1012,7 +1014,7 @@ void menuBarUI ( ref Window window){
 
 void reportUI (ref Window window) {
 
-	window.resizeWindow(Point(500,400));
+	window.resizeWindow(Point(700,600));
 	
 	auto t = new TableLayout();
 	t.colCount = 2;

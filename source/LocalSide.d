@@ -72,7 +72,8 @@ static:
 			json.object["project"] = obj.projectID();
 			json.object["description"] = obj.description;
 			json.object["tantum"] = false;
-			json.object["location"] = obj.place();
+			json.object["place"] = obj.place();
+			json.object["archived"] = false;
 		} else { }
 		
 		static if( is( Type : Tantum)) {
