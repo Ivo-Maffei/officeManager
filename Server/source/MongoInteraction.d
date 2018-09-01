@@ -64,7 +64,7 @@ class MongoTalk {
 		return cursorToJSONValue(cursor);
 	}
 	
-	const(JSONValue) getPasswords() {
+	/*const(JSONValue) getPasswords() {
 		//returns a JSON with entries user : { password: hashedpassword, role: hashedRole}
 		//this is the remote version of the password file that LogIn uses
 		if( systemClient is null ) {
@@ -76,7 +76,7 @@ class MongoTalk {
 		auto cursor = collection.find();
 		log(myUser ~ ": retrieved passwords info");
 		return cursorToJSONValue(cursor)[0];
-	}
+	}*/
 	
 	//sync sessions
 	void syncSessions(const string content) {
@@ -108,6 +108,29 @@ class MongoTalk {
 			throw new Exception(response.toString ~ " error syncing sessions");
 		}
 		
+	}
+	
+	void registerDevice( const string device) { //device is the encryption of password with key the device UUID
+		
+		log(myUser ~ " is registering a device with cryped id : " ~ device);
+		
+		Bson command = Bson.emptyObject;
+		command["update"] = "passwords";
+		command["updates"] = [Bson( [
+			"q" : Bson.emptyObject,
+			"u" : Bson( [ "$addToSet" : Bson([ (myUser~".devices") : Bson(device) ])])
+		])];
+		
+		if( systemClient is null ) {
+			if( host is null) throw new Exception("no host to retrive passwords from; please specify one by connecting");
+			systemClient = connectMongoDB("mongodb://officeManagerApp:askd.-23.asdIjfv@" ~host ~ "/officeManagerSystem?authMechanism=SCRAM-SHA-1");
+		}
+		
+		auto response = systemClient.getDatabase("officeManagerSystem").runCommand(command).toString.parseJSON;
+	
+		if( response["ok"].integer != 1) {
+			throw new Exception(response.toString);
+		}
 	}
 	
 }

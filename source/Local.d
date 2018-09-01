@@ -697,7 +697,9 @@ static: //this makes the all the member static
 	}
 	
 	Outcome createUser( const string userName, const string password, const string role) {
+		import std.string;
 		if(offline) return tuple(false, "need to be online to handle users");
+		if(userName.indexOf(":") != -1 || userName.indexOf("@") != -1) return tuple(false,"Username cannot contain : or @");
 		mixin( doTryCommand("DB.createUser(userName, password, role)","User created") );
 	}
 	

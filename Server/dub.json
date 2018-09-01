@@ -9,6 +9,7 @@
 	"dependencies": {
 		"vibe-d": {
 			"path" : "../vibe-d/"
-		}
+		},
+		"crypto": "~>0.1.5"
 	}
 }

@@ -31,6 +31,7 @@ class ViewController: UIViewController , UIPickerViewDelegate, UIPickerViewDataS
         projectPicker.dataSource = self
         categoryPicker.delegate = self
         categoryPicker.dataSource = self
+       // User.register(myUser: "puci", password: "1234")
     }
     
     func numberOfComponents(in pickerView: UIPickerView) -> Int {
@@ -99,6 +100,13 @@ class ViewController: UIViewController , UIPickerViewDelegate, UIPickerViewDataS
             sender.setTitle("Inizia sessione", for: UIControl.State.normal)
             start = true
         }
+    }
+    
+    
+    @IBAction func SyncAll(_ sender: Any) {
+        sync(what: "categories")
+        sync(what: "projects")
+        sync(what: "sessions")
     }
     
 }

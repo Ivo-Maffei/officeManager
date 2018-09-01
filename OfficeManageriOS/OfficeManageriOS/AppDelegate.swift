@@ -16,6 +16,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
+        User.initialise()
+        //User.register(myUser: "puci", password: "1234")
         return true
     }
 
@@ -46,10 +48,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
 }
 
-
+/*
 func time () {
-    
-    
     print(Date.timeIntervalBetween1970AndReferenceDate)
     
     let day = 60*60*24; //secondi al giorno
@@ -116,8 +116,8 @@ func now(hour : Int, min: Int) {
 }
 
 func final() {
-    
     let now = Date()
     print(now.description)
     print(Int((now.timeIntervalSinceReferenceDate + 63113904000)*10000000))
 }
+*/

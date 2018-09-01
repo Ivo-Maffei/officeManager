@@ -132,7 +132,7 @@ func convalidaSessione( user:String, project: String, category: String, descript
     }
     
     //create string representing the JSON of the new session to sync [so add "status": "new"]
-    let jsonStr = "\n{\n\t\"_id\": " + String(id) + ",\n\t\"category\": " + "\"" + category + "\",\n\t" + "\"dateTime\": \"" + date + "\",\n\t\"description\": \"" + description + "\",\n\t\"duration\": \"" + time + "\",\n\t\"project\": " + prId + ",\n\t\"status\": \"new\",\n\t\"tantum\": false,\n\t\"user\": \"" + user + "\"\n}"
+    let jsonStr = "\n{\n\t\"_id\": " + String(id) + ",\n\t\"category\": " + "\"" + category + "\",\n\t" + "\"dateTime\": \"" + date + "\",\n\t\"description\": \"" + description + "\",\n\t\"duration\": \"" + time + "\",\n\t\"project\": " + prId + ",\n\t\"status\": \"new\",\n\t\"tantum\": false,\n\t\"user\": \"" + user + "\",\n\t\"archived\": false\n}"
     
     //write this to the SessionsSync.db file
     let file = getResourcesPath().appendingPathComponent("SessionsSync.db")
@@ -158,14 +158,14 @@ func convalidaSessione( user:String, project: String, category: String, descript
 }
 
 func send(_ message: String) -> String { //sends message and return server response
-    var response = Optional("OK")
+    var response: Optional<String> = Optional.none
     let address = "127.0.0.1"
-    let port :Int32 = 27018
+    let port :Int32 = 27019
     do{
         let socket = try Socket.create()
-        try socket.connect(to: address, port: port)
+        try socket.connect(to: address, port: port, timeout: (100*60*2)) //2 min of timeout
         try socket.write(from: message)
-        print("message sent: ",message )
+        print("message sent: ",message)
         response = try socket.readString()
     }catch {
         print(error)
@@ -178,10 +178,14 @@ func send(_ message: String) -> String { //sends message and return server respo
 }
 
 func sync( what: String) {
-    var message = "puci"
-    let password = "1234" //get user password
+    var message = User.user
+    if(message == "@@none@@") {
+        //ask to register
+        return
+    }
+    let password = "id:" + User.id.description
     var file = getResourcesPath() //file to write to
-    print("now syncing")
+    
     switch what {
     case "projects":
         message = message + ":" + password + "@get@projects"
@@ -189,9 +193,6 @@ func sync( what: String) {
     case "categories":
         message = message + ":" + password + "@get@categories"
         file.appendPathComponent("Categories.db")
-    case "passwords":
-        message = message + "@get@passwords"
-        file.appendPathComponent("pass")
     case "sessions":
         message = message + ":" + password + "@newSession@"
         let path = getResourcesPath().appendingPathComponent("SessionsSync.db")
@@ -207,7 +208,6 @@ func sync( what: String) {
         print("error I don't know what to sync")
     }
     
-    print("now sending message")
     let response = send(message)
     print("response received: ", response)
     if( response == "fail" ) {

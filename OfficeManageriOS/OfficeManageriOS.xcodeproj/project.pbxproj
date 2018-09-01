@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		F75E527C2139A31E00856545 /* ViewControllerLogin.swift in Sources */ = {isa = PBXBuildFile; fileRef = F75E527B2139A31E00856545 /* ViewControllerLogin.swift */; };
 		F770C50F2138224E005DB5C5 /* Socket.swift in Sources */ = {isa = PBXBuildFile; fileRef = F770C50B2138224E005DB5C5 /* Socket.swift */; };
 		F770C5102138224E005DB5C5 /* SocketProtocols.swift in Sources */ = {isa = PBXBuildFile; fileRef = F770C50D2138224E005DB5C5 /* SocketProtocols.swift */; };
 		F770C5112138224E005DB5C5 /* SocketUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = F770C50E2138224E005DB5C5 /* SocketUtils.swift */; };
@@ -15,10 +16,12 @@
 		F782562A21301A20009323AD /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F782562821301A20009323AD /* Main.storyboard */; };
 		F782562C21301A21009323AD /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F782562B21301A21009323AD /* Assets.xcassets */; };
 		F782562F21301A21009323AD /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F782562D21301A21009323AD /* LaunchScreen.storyboard */; };
+		F7A3247021386C43008E62ED /* Login.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7A3246F21386C43008E62ED /* Login.swift */; };
 		F7FCA5D821304A2E00911AEB /* Local.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7FCA5D721304A2E00911AEB /* Local.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		F75E527B2139A31E00856545 /* ViewControllerLogin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewControllerLogin.swift; sourceTree = "<group>"; };
 		F770C50B2138224E005DB5C5 /* Socket.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Socket.swift; sourceTree = "<group>"; };
 		F770C50C2138224E005DB5C5 /* Socket.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Socket.h; sourceTree = "<group>"; };
 		F770C50D2138224E005DB5C5 /* SocketProtocols.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SocketProtocols.swift; sourceTree = "<group>"; };
@@ -30,6 +33,7 @@
 		F782562B21301A21009323AD /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		F782562E21301A21009323AD /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		F782563021301A21009323AD /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		F7A3246F21386C43008E62ED /* Login.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Login.swift; sourceTree = "<group>"; };
 		F7FCA5D721304A2E00911AEB /* Local.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Local.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -77,6 +81,8 @@
 				F770C50A2138222B005DB5C5 /* BlueSocket */,
 				F782562421301A20009323AD /* AppDelegate.swift */,
 				F782562621301A20009323AD /* ViewController.swift */,
+				F75E527B2139A31E00856545 /* ViewControllerLogin.swift */,
+				F7A3246F21386C43008E62ED /* Login.swift */,
 				F7FCA5D721304A2E00911AEB /* Local.swift */,
 				F782562821301A20009323AD /* Main.storyboard */,
 				F782562B21301A21009323AD /* Assets.xcassets */,
@@ -162,9 +168,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F7A3247021386C43008E62ED /* Login.swift in Sources */,
 				F770C5112138224E005DB5C5 /* SocketUtils.swift in Sources */,
 				F770C50F2138224E005DB5C5 /* Socket.swift in Sources */,
 				F7FCA5D821304A2E00911AEB /* Local.swift in Sources */,
+				F75E527C2139A31E00856545 /* ViewControllerLogin.swift in Sources */,
 				F782562721301A20009323AD /* ViewController.swift in Sources */,
 				F782562521301A20009323AD /* AppDelegate.swift in Sources */,
 				F770C5102138224E005DB5C5 /* SocketProtocols.swift in Sources */,
