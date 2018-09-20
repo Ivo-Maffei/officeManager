@@ -52,7 +52,7 @@ void main(string[] args){
 	
 	
 	writeln("port: ", port, " folder: ", path, " log: ", logFile);
-	if(path[0] != '/' || path[$] != '/' || !path.exists || !path.isDir) {
+	if(!path.exists || !path.isDir) {
 		throw new Exception("invalid path format");
 	}
 	log("########################### Application is started", logFile);
