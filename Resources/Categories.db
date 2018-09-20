@@ -1,0 +1,28 @@
+{
+    "_id": "dummyCat",
+    "color": "Nero"
+}
+{
+    "_id": "verifica POS",
+    "color": "Nero"
+}
+
+{
+    "_id": "Comunicazione Lavori",
+    "color": "Bianco"
+}
+
+{
+    "_id": "Sopralluogo",
+    "color": "Rosso"
+}
+
+{
+    "_id": "DL",
+    "color": "Verde"
+}
+
+{
+    "_id": "visita CSE",
+    "color": "Arancione"
+}

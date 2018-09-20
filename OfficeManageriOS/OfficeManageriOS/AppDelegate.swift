@@ -16,8 +16,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
-        User.initialise()
-        //User.register(myUser: "puci", password: "1234")
+        do {
+            try User.initialise()
+        } catch {
+            //problem with files
+        }
+        
         return true
     }
 

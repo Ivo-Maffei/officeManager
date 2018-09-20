@@ -33,7 +33,7 @@ static: //this makes the all the member static
 	//object to make reports and fatture
 	
 	//find session/tantum/project/category via its ID
-	private Session findSession(const ulong sessionID, const string user = Login.getUser()) {
+	private Session findSession(const ulong sessionID, const string user = null) {
 		
 		if(user != Login.getUser) {
 			import std.file: readText;
@@ -55,7 +55,7 @@ static: //this makes the all the member static
 			}
 			
 		}
-		
+	
 		foreach (ref ses; userSessions) {
 			if(ses.ID == sessionID) return ses; //note that ses may actually be a Tantum
 		}
@@ -189,6 +189,11 @@ static: //this makes the all the member static
 		return Login.getUserRole();
 	}
 	
+	//get if current role is Admin
+	const(bool) isUserAdmin() {
+		return getCurrentRole() == "Admin";
+	}
+	
 	//get role of a given user
 	const(string) getRole(const string user) {
 		return Login.getUserRole(user);
@@ -294,9 +299,13 @@ static: //this makes the all the member static
 	
 	//get projId from project name
 	const(ulong) getProjectId(const string name) {
+		import std.conv: to;
+		
 		auto projects = Project.getProjects();
+		string job = name[1 .. 6]; //job number
+		ushort n = to!ushort(job);
 		foreach( ref proj; projects) {
-			if( proj.name == name) return proj.ID;
+			if(proj.jobNumber == n) return proj.ID;
 		}
 		throw new Exception("Cannot find project with the given name");
 	}
@@ -480,7 +489,7 @@ static: //this makes the all the member static
 	//edit session with sessionID and session's user
 	void editSession (const ulong sessionID, const string sessionUser ,const ulong projID = 0 ,const string user = null ,const string date = null, const string duration = null, const string description = null, const Category category = null) {
 		auto session = findSession(sessionID, sessionUser);
-		editSession( session, projID, user, date,duration, description, category);
+		editSession( session, projID, user, date, duration, description, category);
 	}
 	//edit session with sessionID only
 	void editSession (const ulong sessionID, const ulong projID = 0 ,const string user = null ,const string date = null, const string duration = null, const string description = null, const Category category = null) {

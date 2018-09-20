@@ -7,8 +7,16 @@
 //
 
 import UIKit
+import CoreLocation
 
-class ViewController: UIViewController , UIPickerViewDelegate, UIPickerViewDataSource {
+class ViewController: UIViewController , UIPickerViewDelegate, UIPickerViewDataSource, CLLocationManagerDelegate {
+    
+    //MARK: - Flags of navigation
+    var goRegister = false
+    var loginUI : ViewControllerLogin? = Optional.none
+    var goOptions = false
+    let locationManager = CLLocationManager()
+    var lastPos : CLLocationCoordinate2D? = Optional.none
     
     //MARK: Properties
     @IBOutlet var time: UILabel!
@@ -18,22 +26,67 @@ class ViewController: UIViewController , UIPickerViewDelegate, UIPickerViewDataS
     @IBOutlet var syncBtn: UIButton!
     @IBOutlet var sessionDesc: UITextField!
     
+    
     var projects : [String] = []
     var categories : [String] = []
     var timer = Timer(timeInterval: 1, repeats: false, block: {(t) in }) //dummy timer initialised
     
+    // MARK: - Methods of super classes
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
-        projects = getProjects()
-        categories = getCategories()
+        do {
+            projects = try getProjects()
+            categories = try getCategories()
+        } catch LocalError.FileError(let message) {
+            let alert = UIAlertController(title: "Error with the app", message: "There was an error with the app's files: " + message, preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "OK", style: .cancel, handler: nil))
+            self.present(alert, animated: true)
+        } catch {
+            let alert = UIAlertController(title: "Unknown error", message: "An unknown error occured: " + error.localizedDescription, preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "OK", style: .cancel, handler: nil))
+            self.present(alert, animated: true)
+        }
         projectPicker.delegate = self
         projectPicker.dataSource = self
         categoryPicker.delegate = self
         categoryPicker.dataSource = self
-       // User.register(myUser: "puci", password: "1234")
+        
+        self.locationManager.requestAlwaysAuthorization()
+        self.locationManager.requestWhenInUseAuthorization()
+        
+        if CLLocationManager.locationServicesEnabled() {
+            locationManager.delegate = self
+            locationManager.desiredAccuracy = kCLLocationAccuracyNearestTenMeters
+            locationManager.startUpdatingLocation()
+        }
     }
     
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        guard let locValue: CLLocationCoordinate2D = manager.location?.coordinate else { return }
+        print("locations = \(locValue.latitude) \(locValue.longitude)")
+        lastPos = locValue
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        if(goRegister) {
+            loginUI!.canGoOptions = true;
+            goRegister = false
+            Timer.scheduledTimer(withTimeInterval: 0.5, repeats: false, block: { (t) in
+                self.dismiss(animated: true, completion: nil)
+            })
+            
+            return
+        }
+        
+        if(goOptions) {
+            goOptions = false
+            Timer.scheduledTimer(withTimeInterval: 0.5, repeats: false, block: { (t) in
+                self.goToOptions(self)
+            })
+            return
+        }
+    }
     func numberOfComponents(in pickerView: UIPickerView) -> Int {
         return 1
     }
@@ -52,6 +105,13 @@ class ViewController: UIViewController , UIPickerViewDelegate, UIPickerViewDataS
         } else {
             return categories[row]
         }
+    }
+    
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        // Get the new view controller using segue.destination.
+        let destVC : ViewControllerOptions = segue.destination as! ViewControllerOptions
+        destVC.mainUI = Optional(self)
+        // Pass the selected object to the new view controller.
     }
 
     //MARK: Actions
@@ -95,7 +155,21 @@ class ViewController: UIViewController , UIPickerViewDelegate, UIPickerViewDataS
                 }
                 result = result + String(c)
             }
-            convalidaSessione(user: "puci", project: pr, category: cat, description: result, time: time.text!, date: date)
+            do {
+                var pos : String = "unknown"
+                if(lastPos != nil && lastPos != Optional.none!) {
+                    pos = "\(lastPos!.latitude);\(lastPos!.longitude)"
+                }
+                try convalidaSessione(user: "puci", project: pr, category: cat, description: result, time: time.text!, date: date, position: pos)
+            } catch LocalError.FileError(let message ){
+                let alert = UIAlertController(title: "Error with session", message: "There was a problem with the app's files: "+message, preferredStyle: .alert)
+                alert.addAction(UIAlertAction(title: "OK", style: .cancel, handler: nil))
+                self.present(alert, animated: true)
+            } catch {
+                let alert = UIAlertController(title: "Cannot synchronise with server", message: "Check your internet connection and register this device again if you changed password.", preferredStyle: .alert)
+                alert.addAction(UIAlertAction(title: "OK", style: .cancel, handler: nil))
+                self.present(alert, animated: true)
+            }
             
             sender.setTitle("Inizia sessione", for: UIControl.State.normal)
             start = true
@@ -104,10 +178,21 @@ class ViewController: UIViewController , UIPickerViewDelegate, UIPickerViewDataS
     
     
     @IBAction func SyncAll(_ sender: Any) {
-        sync(what: "categories")
-        sync(what: "projects")
-        sync(what: "sessions")
+        do {
+            try sync(what: "categories")
+            try sync(what: "projects")
+            try sync(what: "sessions")
+        } catch {
+            let alert = UIAlertController(title: "Cannot synchronise with server", message: "Check your internet connection and register this device again if you changed password.", preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "OK", style: .cancel, handler: nil))
+            self.present(alert, animated: true)
+        }
     }
+    
+    @IBAction func goToOptions(_ sender: Any) {
+        performSegue(withIdentifier: "ToOptions", sender: self)
+    }
+    
     
 }
 

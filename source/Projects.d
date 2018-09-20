@@ -1,7 +1,7 @@
 module Projects;
 
 import Categories;
-import std.stdio;
+//import std.stdio;
 //Implementation constraint; you cannot create ex-novo 2 projects at the same time (hsec precision), since ID must be unique
 
 /*
@@ -11,7 +11,7 @@ class Project {
 
 private:
 	string _shortName; //name of the project
-	ushort _jobNumber; //job number [this will be part of the name]; Do I need to keep it as a separate variable??
+	ushort _jobNumber= 0; //job number [this will be part of the name]; Do I need to keep it as a separate variable??
 	bool _sync;
 	ulong _ID =0;  //unique ID to identify the project
 	static Project[] projects = new Project[0]; //list of all projects
@@ -46,7 +46,7 @@ public:
 		}
 		
 		this._shortName = name; //build name and assign it
-		this._jobNumber = number; //assign jobNumber
+		this.changeJobNumber(number); //assign jobNumber
 		
 		this.note = notes; //assign notes
 		
@@ -60,7 +60,16 @@ public:
 		
 		_sync = syncCalendar;
 		
-		projects ~= this;
+		//insert new object in order according to jobNumber
+		import std.array: insertInPlace;
+		int i =0;
+		for( ; i < projects.length; ++i) {
+			if(projects[i].jobNumber >= this.jobNumber){ //then insert at position i
+				projects.insertInPlace(i,this);
+				break;
+			}
+		}
+		if(i == projects.length) projects ~= this;
 		
 	}
 	
@@ -90,8 +99,9 @@ public:
 	//job number	
 	const(ushort) jobNumber() const { return _jobNumber;}
 	void changeJobNumber( const ushort number) {
-		string attempt = createName(this._shortName,number);
-		if (!uniqueName(attempt)) {
+		import std.algorithm: filter; 
+		
+		if (!(projects.filter!(proj => (proj.jobNumber == number && proj.ID != this._ID)).empty)) {
 			throw new Exception("Project number is not unique");
 		}
 		this._jobNumber = number;

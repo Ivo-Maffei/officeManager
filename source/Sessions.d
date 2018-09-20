@@ -28,7 +28,7 @@ public:
 	
 		import std.datetime.systime; 
 		import std.range: take; 
-		import std.conv;
+		import std.conv: to;
 	
 		//get user :this is done by login and password through the program
 		
@@ -47,7 +47,7 @@ public:
 		import std.stdio;
 		
 		if(!validID(projID)) {
-			throw new Exception("creating a session with a project ID which does not match any project");
+			throw new Exception("creating a session ("~ to!string(id)~") with a project ID ("~to!string(projID)~") which does not match any project");
 		}
 		this._projID = projID;
 	

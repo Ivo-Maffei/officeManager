@@ -1,251 +1,28 @@
 
 {
-    "_id": 636711299779441190,
+    "_id": 636723674178855850,
     "archived": false,
-    "category": "None",
-    "cost": 123,
-    "dateTime": "2018-01-01T00:00:00",
-    "description": "",
-    "duration": "none",
+    "category": "dummyCat",
+    "dateTime": "2018-09-12T18:43:37",
+    "description": "prova edit Line",
+    "duration": "00:01",
     "place": "",
-    "project": 636710481913420290,
+    "project": 636715825106398270,
     "status": "new",
-    "tantum": true,
-    "taxable": false,
+    "tantum": false,
     "user": "puci"
 }
 
 {
-    "_id": 636711299923843900,
+    "_id": 636723674506124880,
     "archived": false,
-    "category": "None",
-    "cost": 22,
-    "dateTime": "2018-01-01T00:00:00",
-    "description": "",
-    "duration": "none",
-    "place": "",
-    "project": 636710481913420290,
-    "status": "new",
-    "tantum": true,
-    "taxable": false,
-    "user": "puci"
-}
-
-{
-    "_id": 636711300005460630,
-    "archived": false,
-    "category": "None",
-    "dateTime": "2018-01-01T00:00:00",
+    "category": "dummyCat",
+    "dateTime": "2018-09-12T18:44:10",
     "description": "",
     "duration": "00:00",
     "place": "",
-    "project": 636710481913420290,
+    "project": 636715825106398270,
     "status": "new",
     "tantum": false,
-    "user": "puci"
-}
-
-{
-    "_id": 636711300005460630,
-    "archived": false,
-    "category": "None",
-    "dateTime": "2018-01-01T00:00:00",
-    "description": "",
-    "duration": "06:05",
-    "oldId": 636711300005460630,
-    "place": "",
-    "project": 636710481913420290,
-    "status": "update",
-    "tantum": false,
-    "user": "puci"
-}
-
-{
-    "_id": 636711300544763120,
-    "archived": false,
-    "category": "None",
-    "dateTime": "2018-01-01T00:00:00",
-    "description": "7h",
-    "duration": "00:00",
-    "place": "",
-    "project": 636710481913420290,
-    "status": "new",
-    "tantum": false,
-    "user": "puci"
-}
-
-{
-    "_id": 636711300544763120,
-    "archived": false,
-    "category": "None",
-    "dateTime": "2018-01-01T00:00:00",
-    "description": "7h",
-    "duration": "07:00",
-    "oldId": 636711300544763120,
-    "place": "",
-    "project": 636710481913420290,
-    "status": "update",
-    "tantum": false,
-    "user": "puci"
-}
-
-{
-    "_id": 636711312137221080,
-    "archived": false,
-    "category": "None",
-    "dateTime": "2018-01-01T00:05:00",
-    "description": "",
-    "duration": "00:00",
-    "place": "",
-    "project": 636710481913420290,
-    "status": "new",
-    "tantum": false,
-    "user": "puci"
-}
-
-{
-    "_id": 636711312137221080,
-    "archived": false,
-    "category": "None",
-    "dateTime": "2018-01-01T00:05:00",
-    "description": "",
-    "duration": "03:06",
-    "oldId": 636711312137221080,
-    "place": "",
-    "project": 636710481913420290,
-    "status": "update",
-    "tantum": false,
-    "user": "puci"
-}
-
-{
-    "_id": 636711315548815910,
-    "archived": false,
-    "category": "None",
-    "dateTime": "2018-01-01T00:00:00",
-    "description": "",
-    "duration": "00:00",
-    "place": "",
-    "project": 636711315429407990,
-    "status": "new",
-    "tantum": false,
-    "user": "puci"
-}
-
-{
-    "_id": 636711315548815910,
-    "archived": false,
-    "category": "None",
-    "dateTime": "2018-01-01T00:00:00",
-    "description": "",
-    "duration": "09:00",
-    "oldId": 636711315548815910,
-    "place": "",
-    "project": 636711315429407990,
-    "status": "update",
-    "tantum": false,
-    "user": "puci"
-}
-
-{
-    "_id": 636711318599441270,
-    "archived": false,
-    "category": "None",
-    "dateTime": "2018-01-01T00:00:00",
-    "description": "3h 20m",
-    "duration": "00:00",
-    "place": "",
-    "project": 636710481913420290,
-    "status": "new",
-    "tantum": false,
-    "user": "puci"
-}
-
-{
-    "_id": 636711318599441270,
-    "archived": false,
-    "category": "None",
-    "dateTime": "2018-01-01T00:00:00",
-    "description": "3h 20m",
-    "duration": "03:20",
-    "oldId": 636711318599441270,
-    "place": "",
-    "project": 636710481913420290,
-    "status": "update",
-    "tantum": false,
-    "user": "puci"
-}
-
-{
-    "_id": 636711319566294770,
-    "archived": false,
-    "category": "None",
-    "dateTime": "2018-01-01T00:04:00",
-    "description": "",
-    "duration": "00:00",
-    "place": "",
-    "project": 636710481913420290,
-    "status": "new",
-    "tantum": false,
-    "user": "puci"
-}
-
-{
-    "_id": 636711319566294770,
-    "archived": false,
-    "category": "None",
-    "dateTime": "2018-01-01T00:04:00",
-    "description": "",
-    "duration": "01:00",
-    "oldId": 636711319566294770,
-    "place": "",
-    "project": 636710481913420290,
-    "status": "update",
-    "tantum": false,
-    "user": "puci"
-}
-
-{
-    "_id": 636711320558604620,
-    "archived": false,
-    "category": "None",
-    "dateTime": "2018-01-01T00:00:00",
-    "description": "",
-    "duration": "00:00",
-    "place": "",
-    "project": 636710481913420290,
-    "status": "new",
-    "tantum": false,
-    "user": "puci"
-}
-
-{
-    "_id": 636711320558604620,
-    "archived": false,
-    "category": "None",
-    "dateTime": "2018-01-01T00:00:00",
-    "description": "",
-    "duration": "06:00",
-    "oldId": 636711320558604620,
-    "place": "",
-    "project": 636710481913420290,
-    "status": "update",
-    "tantum": false,
-    "user": "puci"
-}
-
-{
-    "_id": 636711489943412960,
-    "archived": false,
-    "category": "None",
-    "cost": 10000,
-    "dateTime": "2018-01-01T00:00:00",
-    "description": "",
-    "duration": "none",
-    "place": "",
-    "project": 636711315429407990,
-    "status": "new",
-    "tantum": true,
-    "taxable": false,
     "user": "puci"
 }

@@ -2,6 +2,8 @@ import Local: Local; //everything should be done via Local or GUI
 import dlangui;
 import UIActionHandlers;
 
+//import std.stdio;
+
 mixin APP_ENTRY_POINT;
 
 /// entry point for dlangui based application
@@ -52,12 +54,12 @@ void loginUI(ref Window loginWindow) { //creates UI for login
     tLayout.colCount = 2;
     
     auto user = new EditLine("userLine");
-    user.fontSize = 25;
+    //user.fontSize = 25;
     
     auto hLayout = new HorizontalLayout();
     auto password = new EditLine("passLine");
     password.passwordChar = '*'; //this will hide the content and show * instead of actual characters
-    password.fontSize = 25;
+    //password.fontSize = 25;
     password.minWidth = 200;
     
     auto showBtn = new Button("showBtn", "Show/Hide"d);
@@ -68,7 +70,7 @@ void loginUI(ref Window loginWindow) { //creates UI for login
     	hidden = !hidden;
     	return true;
     };
-    showBtn.fontSize = 25;
+   // showBtn.fontSize = 25;
     
     hLayout.addChildren([password,showBtn]);
 	
@@ -76,12 +78,15 @@ void loginUI(ref Window loginWindow) { //creates UI for login
     tLayout.addChild(user);
     tLayout.addChild(new TextWidget(null,"password"d));
     tLayout.addChild(hLayout);
-    tLayout.addChild(new TextWidget("d","Lavora Offline"d).fontSize(25));
+    tLayout.addChild(new TextWidget("d","Lavora Offline"d));//.fontSize(25));
     tLayout.addChild(new CheckBox("offline"));
     
     auto btn = new Button("loginbtn", "login"d);
-    btn.click = new LoginClick(loginWindow, tLayout);
-	btn.fontSize = 25;
+    auto login = new LoginClick(loginWindow, tLayout);
+    btn.click = login;
+	//btn.fontSize = 25;
+	
+	password.keyEvent = new EnterLogin(login);
     
     tLayout.addChild(btn);
     
@@ -178,7 +183,10 @@ void normalUI(ref Window window) { //create UI for normal use
    	projbox.text ="select project";
    	dstring[] projList;
    	foreach(ref pr ; Local.getProjects()) {
-   		projList ~= to!dstring(pr.name);
+   		dstring key;
+   		if( pr.name.length < 30) key = to!dstring(pr.name);
+   		else key = to!dstring(pr.name[0..30]);
+   		projList ~= key;
    	}
    	projbox.items = projList ~"Any"d;
    	
@@ -197,16 +205,28 @@ void normalUI(ref Window window) { //create UI for normal use
    	userbox.minWidth= 200;
    	userbox.text = "select user";
    	dstring[] userList;
-   	 foreach(ref u ; Local.getAllUsers()) {
-   		userList ~= to!dstring(u);
+   	if(Local.isUserAdmin) {
+   		foreach(ref u ; Local.getAllUsers()) {
+   			userList ~= to!dstring(u);
+   		}
+   	} else {
+   		userList = [to!dstring(Local.getCurrentUser())];
    	}
    	userbox.items = userList;// ~ "Any"d;
    	
    	//Set old selection
    	loadState(projbox,catbox,userbox);
+   	static bool first = true;
+   	if(first) {
+   		first = false;
+   		auto index = userbox.items.indexOf(to!dstring(Local.getCurrentUser()));
+		userbox.selectedItemIndex = index == -1 ? 0 : index;
+   	}
    	
    	auto filterbtn = new Button("filterbtn", "Aggiorna tabella"d);
    	filterbtn.fontSize = 20;
+   	
+   	auto sessionEditLine = new EditLine("sesDescriptionEditLine");
    	
    	auto editProj = new Button("editProj", "Modifica progetto"d);
    	auto editCat = new Button("editCat", "Modifica categoria"d);
@@ -218,6 +238,7 @@ void normalUI(ref Window window) { //create UI for normal use
    	dropLayout.addChild(catbox);
    	dropLayout.addChild(userbox);
    	dropLayout.addChild(filterbtn);
+   	dropLayout.addChild(sessionEditLine);
    	dropLayout.addChild(new VSpacer);
    	dropLayout.addChild(editProj);
    	dropLayout.addChild(editCat);
@@ -244,7 +265,7 @@ void normalUI(ref Window window) { //create UI for normal use
    	//------------------------------------------------------------------------------------
    	
    	//CONNECT SIGNALS---------------------------------------------------------------------
-   	playbtn.click =  new StartStopSession(projbox, catbox, grid);
+   	playbtn.click =  new StartStopSession(projbox, catbox, sessionEditLine, grid);
    	projbtn.click = new CreateProjectUI(window);
    	sessionbtn.click = new CreateSessionUI(window);
    	catbtn.click = new CreateCategoryUI(window);
@@ -768,40 +789,47 @@ void editSessionUI (ref Window window, const ulong sessionID) {
 	t.addChild(new TextWidget(null, "Progetto"d));
 	auto proj = new ComboBox("proj");
 	items = [];
+	int index = 0;
 	for(int i =0; i< Local.getProjects().length; ++i) {
 		items ~= to!dstring(Local.getProjects()[i].name);
 		if( info["projectID"] == to!string(Local.getProjects()[i].ID)) {
 			proj.items = items;
-			proj.selectedItemIndex = i;
+			index = i;
 		}
 	}
 	proj.items = items;
+	proj.selectedItemIndex = index;
 	t.addChild(proj);
 	
 	t.addChild(new TextWidget(null, "Categoria"d));
 	auto cat = new ComboBox("cat");
 	items = [];
+	index =0;
 	for(int i=0; i< Local.getCategories().length; ++i) {
 		items ~= to!dstring(Local.getCategories()[i].name);
 		if( info["category"] == Local.getCategories()[i].name) {
 			cat.items = items;
-			cat.selectedItemIndex = i;
+			index = i;
 		}
 	}
 	cat.items = items;
+	cat.selectedItemIndex = index;
 	t.addChild(cat);
 	
 	t.addChild(new TextWidget(null, "Utente"d));
 	auto user = new ComboBox("user");
 	items = [];
-	for(int i=0; i< Local.getAllUsers().length; ++i) {
-		items ~= to!dstring(Local.getAllUsers()[i]);
-		if( info["user"] == Local.getAllUsers()[i]) {
+	index = 0;
+	auto users = Local.getAllUsers();
+	for(int i=0; i< users.length; ++i) {
+		items ~= to!dstring(users[i]);
+		if( info["user"] == users[i]) {
 			user.items = items;
-			user.selectedItemIndex = i;
+			index = i;
 		}
 	}
 	user.items = items;
+	user.selectedItemIndex = index;
 	t.addChild(user);
 	
 	if( info["tantum"] == "true") {

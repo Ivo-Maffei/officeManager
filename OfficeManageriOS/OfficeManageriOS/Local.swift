@@ -14,17 +14,21 @@ func getResourcesPath() -> URL {
     
 }
 
-func getProjects() -> [String] {
-    var pr = getProjectsWithId(server: true)
+func getProjects() throws -> [String]   {
+    var pr = try getProjectsWithId(server: true)
     func first( tuple: (String,String)) -> String {
         return tuple.0
     }
     return (pr.map(first))
 }
 
-func getProjectsWithId(server: Bool) -> [(String, String)] {
+func getProjectsWithId(server: Bool) throws -> [(String, String)]  {
     if(server) {
-        sync(what: "projects")
+        do {
+            try sync(what: "projects")
+        } catch {
+            
+        }
     }
     var path = getResourcesPath()
     path = path.appendingPathComponent("Projects.db")
@@ -55,9 +59,7 @@ func getProjectsWithId(server: Bool) -> [(String, String)] {
             result.append((name,String(id)))
         }
     } catch let err {
-        print("Cannot read projects file")
-        print(err)
-        return []
+        throw LocalError.FileError(err.localizedDescription)
     }
     
     return result
@@ -90,8 +92,12 @@ func splitJsons(_ data: String) -> [String] {
     return result;
 }
 
-func getCategories() -> [String] {
-    sync(what: "categories")
+func getCategories() throws -> [String] {
+    do {
+        try sync(what: "categories")
+    } catch {
+        
+    }
     
     var path = getResourcesPath()
     path = path.appendingPathComponent("Categories.db")
@@ -105,16 +111,14 @@ func getCategories() -> [String] {
             let jsonResult = try JSONSerialization.jsonObject(with: string.data(using: String.Encoding.utf8)!, options: .mutableLeaves) as? Dictionary<String, AnyObject>
             result.append(jsonResult!["_id"] as! String)
         }
-    } catch let err {
-        print("Cannot read categories file")
-        print(err)
-        return []
+    } catch {
+        throw LocalError.FileError(error.localizedDescription)
     }
     
     return result;
 }
 
-func convalidaSessione( user:String, project: String, category: String, description : String, time: String, date: String) {
+func convalidaSessione( user:String, project: String, category: String, description : String, time: String, date: String, position: String) throws {
     //id is hnseconds from 00:00 of 01/01/0001 AD UTC
     //Date().timeIntervalSinceReferenceDate is seconds since 00:00 of 01/01/2001 AD UTC
     //So number of hnsecods from 00:00 of 01/01/0001 AD UTC to 00:00 of 01/01/2001 AD UTC is
@@ -122,7 +126,7 @@ func convalidaSessione( user:String, project: String, category: String, descript
     let id = Int((Date().timeIntervalSinceReferenceDate + 63113904000)*10000000)
     
     //get projID from projectName: read from file Projects.db
-    let list = getProjectsWithId(server: false)
+    let list = try getProjectsWithId(server: false)
     var prId = ""
     for t in list {
         if(t.0 == project) {
@@ -132,7 +136,7 @@ func convalidaSessione( user:String, project: String, category: String, descript
     }
     
     //create string representing the JSON of the new session to sync [so add "status": "new"]
-    let jsonStr = "\n{\n\t\"_id\": " + String(id) + ",\n\t\"category\": " + "\"" + category + "\",\n\t" + "\"dateTime\": \"" + date + "\",\n\t\"description\": \"" + description + "\",\n\t\"duration\": \"" + time + "\",\n\t\"project\": " + prId + ",\n\t\"status\": \"new\",\n\t\"tantum\": false,\n\t\"user\": \"" + user + "\",\n\t\"archived\": false\n}"
+    let jsonStr = "\n{\n\t\"_id\": " + String(id) + ",\n\t\"category\": " + "\"" + category + "\",\n\t" + "\"dateTime\": \"" + date + "\",\n\t\"description\": \"" + description + "\",\n\t\"duration\": \"" + time + "\",\n\t\"project\": " + prId + ",\n\t\"status\": \"new\",\n\t\"tantum\": false,\n\t\"user\": \"" + user + "\",\n\t\"archived\": false,\n\t\"place\": \"" + position + "\" \n}"
     
     //write this to the SessionsSync.db file
     let file = getResourcesPath().appendingPathComponent("SessionsSync.db")
@@ -143,33 +147,48 @@ func convalidaSessione( user:String, project: String, category: String, descript
         fileHandle.write(jsonStr.data(using: String.Encoding.utf8)!)
         fileHandle.closeFile()
     } catch let error {
-        print("something went wrong with sessions file")
-        print(error)
+       throw LocalError.FileError(error.localizedDescription)
     }
     
     do {
         let data = try Data(contentsOf: file, options: .mappedIfSafe)
         print(String(data: data, encoding: String.Encoding.utf8)!)
     } catch {
-        
+        throw LocalError.FileError(error.localizedDescription)
     }
     
-    sync(what:"sessions")
+    try sync(what:"sessions")
 }
 
-func send(_ message: String) -> String { //sends message and return server response
+func send(_ message: String) throws -> String { //sends message and return server response
     var response: Optional<String> = Optional.none
-    let address = "127.0.0.1"
-    let port :Int32 = 27019
-    do{
-        let socket = try Socket.create()
-        try socket.connect(to: address, port: port, timeout: (100*60*2)) //2 min of timeout
-        try socket.write(from: message)
-        print("message sent: ",message)
-        response = try socket.readString()
-    }catch {
-        print(error)
+    let address = User.host
+    let port :Int32 = User.port
+    
+    var socket : Socket
+    do {
+        socket = try Socket.create(family: Socket.ProtocolFamily.inet6, type: Socket.SocketType.stream, proto: Socket.SocketProtocol.tcp)
+    } catch {
+        throw LocalError.SocketError("cannot create socket: " + error.localizedDescription)
     }
+    print("created socket")
+    print("host:", address,".")
+//    let addr = Socket.createAddress(for: address, on: port)
+    print("port:", port,".")
+    do {
+        try socket.connect(to: address, port: port, timeout: 120000) //2 min of timeout
+    } catch {
+        throw LocalError.SocketError("cannot connect to " + address + ":" + String(port) + "  : " + error.localizedDescription)
+    }
+    print("connected to:", address, " on port: ", port)
+    do {
+        try socket.write(from: message)
+    } catch {
+        throw LocalError.SocketError("cannot write to socket: " + error.localizedDescription)
+    }
+    print("message sent: ",message)
+    response = try socket.readString()
+    
     if(response == Optional.none) {
         return "fail"
     } else {
@@ -177,7 +196,7 @@ func send(_ message: String) -> String { //sends message and return server respo
     }
 }
 
-func sync( what: String) {
+func sync( what: String) throws {
     var message = User.user
     if(message == "@@none@@") {
         //ask to register
@@ -208,7 +227,7 @@ func sync( what: String) {
         print("error I don't know what to sync")
     }
     
-    let response = send(message)
+    let response = try send(message)
     print("response received: ", response)
     if( response == "fail" ) {
         //display message that we can't sync
@@ -217,6 +236,11 @@ func sync( what: String) {
     do {
         try response.write(to: file, atomically: false, encoding: String.Encoding.utf8)
     }catch {
-        print(error)
+        throw LocalError.FileError(error.localizedDescription)
     }
+}
+
+enum LocalError : Error {
+    case FileError(String)
+    case SocketError(String)
 }

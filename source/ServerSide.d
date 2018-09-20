@@ -10,7 +10,7 @@ import vibe.db.mongo.mongo;
 import vibe.db.mongo.client;
 import vibe.data.json;
 import std.json; //nicer than vibe.data.json and to use when interfacing with Local
-
+import std.stdio;
 
 class SyncServer {
 
@@ -93,6 +93,13 @@ static:
 					])];
 					break;
 				case "remove":
+					if(collection == "projects") {
+						ulong id;
+						if(json["_id"].type == JSON_TYPE.UINTEGER) id = json["_id"].uinteger; 	//uinteger can represent unsigned integral which cannot be long
+						else id = to!ulong(json["_id"].integer);
+						deleteProject(id);
+						continue; //go to next iteration
+					}
 					command["delete"] = collection;
 					idType id;
 					static if( is (idType : ulong)) {
@@ -139,9 +146,12 @@ static:
 	
 	void connect (const string host, const string user , const string password ) {
 		//Local should call login to ensure user-password is correct
+		writeln("################# connecting to MongoDB");
 		_mongoClient = connectMongoDB("mongodb://"~ user ~":"~ password~ "@" ~host ~ "/officeManager?authMechanism=SCRAM-SHA-1");
+		writeln("################# connected client");
 		if( systemClient is null) systemClient = connectMongoDB("mongodb://officeManagerApp:askd.-23.asdIjfv@" ~host ~ "/officeManagerSystem?authMechanism=SCRAM-SHA-1");
 		_host = host;
+		writeln("################ connection done");
 	}
 	
 	void disconnect() {
@@ -169,6 +179,37 @@ static:
 	
 	void syncProjects() {
 		syncFile!ulong("projects", projectsDB);
+	}
+	
+	void deleteProject(ulong projID) {
+		
+		import std.conv: to;
+	
+		Bson command = Bson.emptyObject;
+		command["delete"] = "projects";
+		command["deletes"] = [Bson([
+			"q" : Bson(["_id" : Bson(projID)]),
+			"limit" : Bson(0)
+		])];
+		auto response = _mongoClient.getDatabase("officeManager").runCommand(command).toString.parseJSON;
+			
+		if(response["ok"].integer != 1) {
+			throw new SyncException(response, "error deleting project "~to!string(projID));
+		}
+		
+		command = Bson.emptyObject; 
+		command["delete"] = "sessions";
+		command["deletes"] = [ Bson([
+			"q" : Bson(["project" : Bson(projID)]),
+			"limit" : Bson(0) //delete all matching documents
+		])];
+		
+		response = _mongoClient.getDatabase("officeManager").runCommand(command).toString.parseJSON;
+		
+		if(response["ok"].integer != 1) {
+			throw new SyncException(response, "error deleting sessions of deleted project "~to!string(projID));
+		}
+	
 	}
 
 //----------------------------------------------------------------------------------------

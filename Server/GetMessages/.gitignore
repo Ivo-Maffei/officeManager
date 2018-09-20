@@ -1,0 +1,14 @@
+.dub
+docs.json
+__dummy.html
+docs/
+getmessages.so
+getmessages.dylib
+getmessages.dll
+getmessages.a
+getmessages.lib
+getmessages-test-*
+*.exe
+*.o
+*.obj
+*.lst

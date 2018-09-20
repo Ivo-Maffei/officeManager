@@ -18,7 +18,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func send(message: String) { //sends message to port 2122
         var mySocket: Socket
         do {
-            mySocket = try Socket.create()
+            mySocket = try Socket.create(family: .inet6, type: .stream, proto: .tcp)
         } catch let error {
             print("Cannot create socket")
             print(error)
@@ -26,9 +26,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
         
         do {
-            try mySocket.connect(to: "127.0.0.1", port: OMPort)
+            try mySocket.connect(to: "localhost", port: OMPort)
         } catch let error {
             print("Cannot connect to socket")
+            print("sending to 127.0.0.1 on port ", OMPort)
             print(error)
             return
         }
@@ -190,7 +191,8 @@ class ServerThread : Thread { //listen on port 2121 and react
         let mySocket: Socket
         
         do {
-            mySocket = try Socket.create()
+            mySocket = try Socket.create(family: .inet6, type: .stream, proto: .tcp)
+          //  mySocket = try Socket.create(family: .inet, type: .stream, proto: .tcp)
             print("now listening ...")
             try mySocket.listen(on: port)
         } catch let error {

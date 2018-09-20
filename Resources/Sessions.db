@@ -1,120 +1,245 @@
 {
-    "_id": 636711299779441190,
+    "_id": 636714884791611190,
     "archived": false,
     "category": "None",
-    "cost": 123,
-    "dateTime": "2018-01-01T00:00:00",
+    "dateTime": "2018-09-02T14:34:39",
     "description": "",
-    "duration": "none",
-    "place": "",
-    "project": 636710481913420290,
-    "tantum": true,
-    "taxable": false,
-    "user": "puci"
-}{
-    "_id": 636711299923843900,
-    "archived": false,
-    "category": "None",
-    "cost": 22,
-    "dateTime": "2018-01-01T00:00:00",
-    "description": "",
-    "duration": "none",
-    "place": "",
-    "project": 636710481913420290,
-    "tantum": true,
-    "taxable": false,
-    "user": "puci"
-}{
-    "_id": 636711300005460630,
-    "archived": false,
-    "category": "None",
-    "dateTime": "2018-01-01T00:00:00",
-    "description": "",
-    "duration": "06:05",
+    "duration": "00:00",
     "place": "",
     "project": 636710481913420290,
     "tantum": false,
-    "user": "puci"
-}{
-    "_id": 636711300544763120,
-    "archived": false,
-    "category": "None",
-    "dateTime": "2018-01-01T00:00:00",
-    "description": "7h",
-    "duration": "07:00",
-    "place": "",
-    "project": 636710481913420290,
-    "tantum": false,
-    "user": "puci"
-}{
-    "_id": 636711312137221080,
-    "archived": false,
-    "category": "None",
-    "dateTime": "2018-01-01T00:05:00",
-    "description": "",
-    "duration": "03:06",
-    "place": "",
-    "project": 636710481913420290,
-    "tantum": false,
-    "user": "puci"
-}{
-    "_id": 636711315548815910,
-    "archived": false,
-    "category": "None",
-    "dateTime": "2018-01-01T00:00:00",
-    "description": "",
-    "duration": "09:00",
-    "place": "",
-    "project": 636711315429407990,
-    "tantum": false,
-    "user": "puci"
-}{
-    "_id": 636711318599441270,
-    "archived": false,
-    "category": "None",
-    "dateTime": "2018-01-01T00:00:00",
-    "description": "3h 20m",
-    "duration": "03:20",
-    "place": "",
-    "project": 636710481913420290,
-    "tantum": false,
-    "user": "puci"
-}{
-    "_id": 636711319566294770,
-    "archived": false,
-    "category": "None",
-    "dateTime": "2018-01-01T00:04:00",
-    "description": "",
-    "duration": "01:00",
-    "place": "",
-    "project": 636710481913420290,
-    "tantum": false,
-    "user": "puci"
+    "user": "Arturo"
 }
 {
-    "_id": 636711320558604620,
+    "_id": 636714885098805620,
     "archived": false,
-    "category": "None",
-    "dateTime": "2018-01-01T00:00:00",
+    "category": "verifica POS",
+    "dateTime": "2018-09-02T14:35:09",
     "description": "",
-    "duration": "06:00",
+    "duration": "01:01",
+    "place": "",
+    "project": 636714883859467690,
+    "tantum": false,
+    "user": "Arturo"
+}
+
+{
+    "_id": 636714925658589670,
+    "archived": false,
+    "category": "verifica POS",
+    "dateTime": "2018-09-02T15:42:45",
+    "description": "",
+    "duration": "00:00",
+    "place": "",
+    "project": 636714883859467690,
+    "tantum": false,
+    "user": "Arturo"
+}
+
+{
+    "_id": 636714926316363960,
+    "archived": false,
+    "category": "verifica POS",
+    "dateTime": "2018-09-02T15:43:51",
+    "description": "",
+    "duration": "00:42",
+    "place": "",
+    "project": 636714883859467690,
+    "tantum": false,
+    "user": "Arturo"
+}
+
+{
+    "_id": 636714952461627590,
+    "archived": false,
+    "category": "Comunicazione Lavori",
+    "dateTime": "2018-09-02T16:27:26",
+    "description": "",
+    "duration": "00:05",
+    "place": "",
+    "project": 636714952033345620,
+    "tantum": false,
+    "user": "Arturo"
+}
+
+{
+    "_id": 636714958317940150,
+    "archived": false,
+    "category": "Comunicazione Lavori",
+    "dateTime": "2018-09-02T16:37:11",
+    "description": "",
+    "duration": "01:01",
+    "place": "",
+    "project": 636714952033345620,
+    "tantum": false,
+    "user": "Arturo"
+}
+
+{
+    "_id": 636715833573981800,
+    "archived": false,
+    "category": "Sopralluogo",
+    "dateTime": "2018-09-03T08:00:00",
+    "description": "Verbale di consegna lavori",
+    "duration": "03:30",
+    "place": "",
+    "project": 636715825106398270,
+    "tantum": false,
+    "user": "Arturo"
+}
+
+{
+    "_id": 636715848566338920,
+    "archived": false,
+    "category": "DL",
+    "dateTime": "2018-09-03T17:20:56",
+    "description": "",
+    "duration": "00:42",
+    "place": "",
+    "project": 636715834744910420,
+    "tantum": false,
+    "user": "Arturo"
+}
+
+{
+    "_id": 636715881732486300,
+    "archived": false,
+    "category": "DL",
+    "dateTime": "2018-09-03T18:16:13",
+    "description": "",
+    "duration": "00:23",
+    "place": "",
+    "project": 636715881608393730,
+    "tantum": false,
+    "user": "Arturo"
+}
+
+{
+    "_id": 636716618405407590,
+    "archived": false,
+    "category": "Sopralluogo",
+    "dateTime": "2018-09-04T07:00:00",
+    "description": "sopralluogo con Enel distribuzione",
+    "duration": "05:00",
+    "place": "",
+    "project": 636715881608393730,
+    "tantum": false,
+    "user": "Arturo"
+}
+
+{
+    "_id": 636716619178303910,
+    "archived": false,
+    "category": "DL",
+    "dateTime": "2018-09-04T14:45:17",
+    "description": "",
+    "duration": "02:02",
+    "place": "",
+    "project": 636715825106398270,
+    "tantum": false,
+    "user": "Arturo"
+}
+
+{
+    "_id": 636720125274263200,
+    "archived": false,
+    "category": "DL",
+    "dateTime": "2018-09-08T14:30:00",
+    "description": "controllo disegni e carichi appoggi",
+    "duration": "01:30",
+    "place": "",
+    "project": 636715881608393730,
+    "tantum": false,
+    "user": "Arturo"
+}
+
+{
+    "_id": 636720125303738610,
+    "archived": false,
+    "category": "DL",
+    "dateTime": "2018-09-08T16:08:50",
+    "description": "",
+    "duration": "00:10",
+    "place": "",
+    "project": 636715881608393730,
+    "tantum": false,
+    "user": "Arturo"
+}
+
+{
+    "_id": 636720131473878890,
+    "archived": false,
+    "category": "DL",
+    "dateTime": "2018-09-08T16:19:07",
+    "description": "",
+    "duration": "02:47",
+    "place": "",
+    "project": 636715834744910420,
+    "tantum": false,
+    "user": "Arturo"
+}
+
+{
+    "_id": 636720250287465230,
+    "archived": false,
+    "category": "DL",
+    "dateTime": "2018-09-08T19:37:08",
+    "description": "",
+    "duration": "00:31",
+    "place": "",
+    "project": 636715834744910420,
+    "tantum": false,
+    "user": "Arturo"
+}
+
+{
+    "_id": 636720825762534550,
+    "archived": false,
+    "category": "dummyCat",
+    "dateTime": "2018-09-09T09:00:00",
+    "description": "sistemati server, aggiornato software backup, installato backup su SRVCAD",
+    "duration": "02:20",
     "place": "",
     "project": 636710481913420290,
+    "tantum": false,
+    "user": "Arturo"
+}
+
+{
+    "_id": 636720825903508070,
+    "archived": false,
+    "category": "DL",
+    "dateTime": "2018-09-09T11:36:30",
+    "description": "",
+    "duration": "00:57",
+    "place": "",
+    "project": 636715834744910420,
+    "tantum": false,
+    "user": "Arturo"
+}
+
+{
+    "_id": 636723674178855850,
+    "archived": false,
+    "category": "dummyCat",
+    "dateTime": "2018-09-12T18:43:37",
+    "description": "prova edit Line",
+    "duration": "00:01",
+    "place": "",
+    "project": 636715825106398270,
     "tantum": false,
     "user": "puci"
 }
 
 {
-    "_id": 636711489943412960,
+    "_id": 636723674506124880,
     "archived": false,
-    "category": "None",
-    "cost": 10000,
-    "dateTime": "2018-01-01T00:00:00",
+    "category": "dummyCat",
+    "dateTime": "2018-09-12T18:44:10",
     "description": "",
-    "duration": "none",
+    "duration": "00:00",
     "place": "",
-    "project": 636711315429407990,
-    "tantum": true,
-    "taxable": false,
+    "project": 636715825106398270,
+    "tantum": false,
     "user": "puci"
 }

@@ -1,0 +1,244 @@
+2018-09-02T17:18:35.254492 @ ########################### Application is started
+2018-09-02T17:18:35.255026 @ ########################### arguments:
+2018-09-02T17:18:35.26077 @ ########################### port: 27019, db: b=127.0.0.1, log: prova.log
+2018-09-02T17:18:35.261039 @ #### server started
+2018-09-02T17:18:35.263621 @ #### server is listening on port 27019
+2018-09-02T17:19:29.248144 @ ########################### Application is started
+2018-09-02T17:19:29.248543 @ ########################### arguments:
+2018-09-02T17:19:29.249024 @ ########################### port: 27019, db: 127.0.0.1, log: prova.log
+2018-09-02T17:19:29.249157 @ #### server started
+2018-09-02T17:19:29.252205 @ #### server is listening on port 27019
+2018-09-02T17:28:35.795032 @ #### server received connection from [::1]:50996
+2018-09-02T17:28:35.795771 @ [::1]:50996 sent message: puci:1234@registerDevice@iPhone X@FA25BFDD-9F57-4393-A302-4B7E33C9D67F
+2018-09-02T17:28:35.826763 @ connected to MongoDB using user puci
+2018-09-02T17:28:35.827656 @ puci is registering a device with cryped id : S7anHq6AXBDYblpQ9VRaTg==
+2018-09-02T17:28:35.853648 @ puci device registered
+2018-09-02T17:28:35.853991 @ puci: disconnected from MongoDB
+2018-09-02T17:28:35.854176 @ #### connection with [::1]:50996 terminated
+2018-09-02T17:28:35.876035 @ #### server received connection from [::1]:50999
+2018-09-02T17:28:35.876478 @ [::1]:50999 sent message: puci:id:FA25BFDD-9F57-4393-A302-4B7E33C9D67F@get@projects
+2018-09-02T17:28:35.876685 @ puci retrieving password from device id: FA25BFDD-9F57-4393-A302-4B7E33C9D67F
+2018-09-02T17:28:35.896959 @ connected to MongoDB using user puci
+2018-09-02T17:28:35.897188 @ puci connected to mongo
+2018-09-02T17:28:35.897371 @ puci: retrieved projects info
+2018-09-02T17:28:35.897842 @ puci obtained projects from database
+2018-09-02T17:28:35.898028 @ server sent projects to puci
+2018-09-02T17:28:35.898171 @ puci: disconnected from MongoDB
+2018-09-02T17:28:35.898407 @ #### connection with [::1]:50999 terminated
+2018-09-02T17:28:35.909281 @ #### server received connection from [::1]:51001
+2018-09-02T17:28:35.909673 @ [::1]:51001 sent message: puci:id:FA25BFDD-9F57-4393-A302-4B7E33C9D67F@get@categories
+2018-09-02T17:28:35.909796 @ puci retrieving password from device id: FA25BFDD-9F57-4393-A302-4B7E33C9D67F
+2018-09-02T17:28:35.929746 @ connected to MongoDB using user puci
+2018-09-02T17:28:35.929933 @ puci connected to mongo
+2018-09-02T17:28:35.930067 @ puci: retrieved categories info
+2018-09-02T17:28:35.930398 @ puci obtained categories from database
+2018-09-02T17:28:35.930546 @ server sent categories to puci
+2018-09-02T17:28:35.930707 @ puci: disconnected from MongoDB
+2018-09-02T17:28:35.930892 @ #### connection with [::1]:51001 terminated
+2018-09-02T17:48:56.566207 @ ########################### Application is started
+2018-09-02T17:48:56.566606 @ ########################### arguments:
+2018-09-02T17:48:56.568792 @ ########################### port: 27019, db: 127.0.0.1, log: prova.log
+2018-09-02T17:48:56.569075 @ #### server started
+2018-09-02T17:48:56.571397 @ #### server is listening on port 27019
+2018-09-02T17:50:02.566897 @ #### server received connection from [::1]:52158
+2018-09-02T17:50:02.567557 @ [::1]:52158 sent message: puci:1234@registerDevice@iPhone X@FA25BFDD-9F57-4393-A302-4B7E33C9D67F
+2018-09-02T17:50:02.600099 @ connected to MongoDB using user puci
+2018-09-02T17:50:02.601085 @ puci is registering a device with cryped id : S7anHq6AXBDYblpQ9VRaTg==
+2018-09-02T17:50:02.629577 @ puci device registered
+2018-09-02T17:50:02.6299 @ puci: disconnected from MongoDB
+2018-09-02T17:50:02.630183 @ #### connection with [::1]:52158 terminated
+2018-09-02T17:50:02.640619 @ #### server received connection from [::1]:52161
+2018-09-02T17:50:02.648406 @ [::1]:52161 sent message: puci:id:FA25BFDD-9F57-4393-A302-4B7E33C9D67F@get@projects
+2018-09-02T17:50:02.648805 @ puci retrieving password from device id: FA25BFDD-9F57-4393-A302-4B7E33C9D67F
+2018-09-02T17:50:02.673598 @ connected to MongoDB using user puci
+2018-09-02T17:50:02.674001 @ puci connected to mongo
+2018-09-02T17:50:02.67439 @ puci: retrieved projects info
+2018-09-02T17:50:02.675082 @ puci obtained projects from database
+2018-09-02T17:50:02.675425 @ server sent projects to puci
+2018-09-02T17:50:02.675671 @ puci: disconnected from MongoDB
+2018-09-02T17:50:02.675955 @ #### connection with [::1]:52161 terminated
+2018-09-02T17:50:02.679139 @ #### server received connection from [::1]:52163
+2018-09-02T17:50:02.679858 @ [::1]:52163 sent message: puci:id:FA25BFDD-9F57-4393-A302-4B7E33C9D67F@get@categories
+2018-09-02T17:50:02.680195 @ puci retrieving password from device id: FA25BFDD-9F57-4393-A302-4B7E33C9D67F
+2018-09-02T17:50:02.703357 @ connected to MongoDB using user puci
+2018-09-02T17:50:02.70369 @ puci connected to mongo
+2018-09-02T17:50:02.703969 @ puci: retrieved categories info
+2018-09-02T17:50:02.704496 @ puci obtained categories from database
+2018-09-02T17:50:02.704709 @ server sent categories to puci
+2018-09-02T17:50:02.705118 @ puci: disconnected from MongoDB
+2018-09-02T17:50:02.705362 @ #### connection with [::1]:52163 terminated
+2018-09-03T10:38:30.331805 @ ########################### Application is started
+2018-09-03T10:38:30.332182 @ ########################### arguments:
+2018-09-03T10:38:30.332522 @ ########################### port: 27019, db: 127.0.0.1, log: prova.log
+2018-09-03T10:38:30.332857 @ #### server started
+2018-09-03T10:40:33.023868 @ ########################### Application is started
+2018-09-03T10:40:33.024278 @ ########################### arguments:
+2018-09-03T10:40:33.030255 @ ########################### port: 27019, db: 127.0.0.1, log: prova.log
+2018-09-03T10:40:33.030464 @ #### server started
+2018-09-03T10:42:06.393232 @ ########################### Application is started
+2018-09-03T10:42:06.393516 @ ########################### arguments:
+2018-09-03T10:42:06.393719 @ ########################### port: 27019, db: 127.0.0.1, log: prova.log
+2018-09-03T10:42:06.393846 @ #### server started
+2018-09-03T10:42:06.396188 @ #### server is listening on port 27019
+2018-09-03T10:42:37.804953 @ #### server received connection from 127.0.0.1:57082
+2018-09-03T10:42:37.80581 @ 127.0.0.1:57082 sent message: puci:1234@registerDevice@iPhone X@FA25BFDD-9F57-4393-A302-4B7E33C9D67F
+2018-09-03T10:42:37.83448 @ connected to MongoDB using user puci
+2018-09-03T10:42:37.836128 @ puci is registering a device with cryped id : S7anHq6AXBDYblpQ9VRaTg==
+2018-09-03T10:42:37.861427 @ puci device registered
+2018-09-03T10:42:37.861656 @ puci: disconnected from MongoDB
+2018-09-03T10:42:37.861803 @ #### connection with 127.0.0.1:57082 terminated
+2018-09-03T10:42:37.884734 @ #### server received connection from 127.0.0.1:57085
+2018-09-03T10:42:37.885162 @ 127.0.0.1:57085 sent message: puci:id:FA25BFDD-9F57-4393-A302-4B7E33C9D67F@get@projects
+2018-09-03T10:42:37.885308 @ puci retrieving password from device id: FA25BFDD-9F57-4393-A302-4B7E33C9D67F
+2018-09-03T10:42:37.906393 @ connected to MongoDB using user puci
+2018-09-03T10:42:37.906551 @ puci connected to mongo
+2018-09-03T10:42:37.906674 @ puci: retrieved projects info
+2018-09-03T10:42:37.907088 @ puci obtained projects from database
+2018-09-03T10:42:37.907275 @ server sent projects to puci
+2018-09-03T10:42:37.907405 @ puci: disconnected from MongoDB
+2018-09-03T10:42:37.907734 @ #### connection with 127.0.0.1:57085 terminated
+2018-09-03T10:42:37.919125 @ #### server received connection from 127.0.0.1:57087
+2018-09-03T10:42:37.919527 @ 127.0.0.1:57087 sent message: puci:id:FA25BFDD-9F57-4393-A302-4B7E33C9D67F@get@categories
+2018-09-03T10:42:37.919864 @ puci retrieving password from device id: FA25BFDD-9F57-4393-A302-4B7E33C9D67F
+2018-09-03T10:42:37.939913 @ connected to MongoDB using user puci
+2018-09-03T10:42:37.940111 @ puci connected to mongo
+2018-09-03T10:42:37.94023 @ puci: retrieved categories info
+2018-09-03T10:42:37.940576 @ puci obtained categories from database
+2018-09-03T10:42:37.940742 @ server sent categories to puci
+2018-09-03T10:42:37.940898 @ puci: disconnected from MongoDB
+2018-09-03T10:42:37.941236 @ #### connection with 127.0.0.1:57087 terminated
+2018-09-03T10:42:53.833865 @ #### server received connection from 127.0.0.1:57095
+2018-09-03T10:42:53.834379 @ 127.0.0.1:57095 sent message: puci:id:FA25BFDD-9F57-4393-A302-4B7E33C9D67F@newSession@
+{
+	"_id": 636715609738246016,
+	"category": "None",
+	"dateTime": "2018-09-03T08:42:52",
+	"description": "",
+	"duration": "00:00",
+	"project": 636698383859411630,
+	"status": "new",
+	"tantum": false,
+	"user": "puci",
+	"archived": false
+}
+2018-09-03T10:42:53.834622 @ puci retrieving password from device id: FA25BFDD-9F57-4393-A302-4B7E33C9D67F
+2018-09-03T10:42:53.862811 @ connected to MongoDB using user puci
+2018-09-03T10:42:53.863071 @ puci connected to mongo
+2018-09-03T10:42:53.863217 @ puci: syncing sessions
+2018-09-03T10:42:53.872493 @ puci: serverResponse: {"n":1,"ok":1}
+2018-09-03T10:42:53.872678 @ puci's' sessions synced
+2018-09-03T10:42:53.872846 @ puci: disconnected from MongoDB
+2018-09-03T10:42:53.873094 @ #### connection with 127.0.0.1:57095 terminated
+2018-09-03T10:43:55.374479 @ ########################### Application is started
+2018-09-03T10:43:55.374895 @ ########################### arguments:
+2018-09-03T10:43:55.375158 @ ########################### port: 27019, db: 127.0.0.1, log: prova.log
+2018-09-03T10:43:55.375475 @ #### server started
+2018-09-03T10:43:55.378581 @ #### server is listening on port 27019
+2018-09-03T10:47:15.481646 @ ########################### Application is started
+2018-09-03T10:47:15.481956 @ ########################### arguments:
+2018-09-03T10:47:15.488134 @ ########################### port: 27019, db: 127.0.0.1, log: prova.log
+2018-09-03T10:47:15.488563 @ #### server started
+2018-09-03T10:47:15.493522 @ #### server is listening on port 27019
+2018-09-03T10:47:24.316964 @ #### server received connection from 127.0.0.1:57224
+2018-09-03T10:47:24.317676 @ 127.0.0.1:57224 sent message: puci:1234@registerDevice@iPhone X@FA25BFDD-9F57-4393-A302-4B7E33C9D67F
+2018-09-03T10:47:24.341673 @ connected to MongoDB using user puci
+2018-09-03T10:47:24.343044 @ puci is registering a device with cryped id : S7anHq6AXBDYblpQ9VRaTg==
+2018-09-03T10:47:24.364405 @ puci device registered
+2018-09-03T10:47:24.364697 @ puci: disconnected from MongoDB
+2018-09-03T10:47:24.364919 @ #### connection with 127.0.0.1:57224 terminated
+2018-09-03T10:47:24.374522 @ #### server received connection from 127.0.0.1:57227
+2018-09-03T10:47:24.375012 @ 127.0.0.1:57227 sent message: puci:id:FA25BFDD-9F57-4393-A302-4B7E33C9D67F@get@projects
+2018-09-03T10:47:24.375185 @ puci retrieving password from device id: FA25BFDD-9F57-4393-A302-4B7E33C9D67F
+2018-09-03T10:47:24.394866 @ connected to MongoDB using user puci
+2018-09-03T10:47:24.395179 @ puci connected to mongo
+2018-09-03T10:47:24.395337 @ puci: retrieved projects info
+2018-09-03T10:47:24.39588 @ puci obtained projects from database
+2018-09-03T10:47:24.396081 @ server sent projects to puci
+2018-09-03T10:47:24.396387 @ puci: disconnected from MongoDB
+2018-09-03T10:47:24.396669 @ #### connection with 127.0.0.1:57227 terminated
+2018-09-03T10:47:24.399659 @ #### server received connection from 127.0.0.1:57229
+2018-09-03T10:47:24.400137 @ 127.0.0.1:57229 sent message: puci:id:FA25BFDD-9F57-4393-A302-4B7E33C9D67F@get@categories
+2018-09-03T10:47:24.4004 @ puci retrieving password from device id: FA25BFDD-9F57-4393-A302-4B7E33C9D67F
+2018-09-03T10:47:24.419983 @ connected to MongoDB using user puci
+2018-09-03T10:47:24.420237 @ puci connected to mongo
+2018-09-03T10:47:24.420534 @ puci: retrieved categories info
+2018-09-03T10:47:24.421082 @ puci obtained categories from database
+2018-09-03T10:47:24.421275 @ server sent categories to puci
+2018-09-03T10:47:24.421472 @ puci: disconnected from MongoDB
+2018-09-03T10:47:24.421899 @ #### connection with 127.0.0.1:57229 terminated
+2018-09-03T10:47:30.597049 @ #### server received connection from 127.0.0.1:57231
+2018-09-03T10:47:30.597725 @ 127.0.0.1:57231 sent message: puci:id:FA25BFDD-9F57-4393-A302-4B7E33C9D67F@newSession@
+{
+	"_id": 636715612505842688,
+	"category": "None",
+	"dateTime": "2018-09-03T08:47:30",
+	"description": "",
+	"duration": "00:00",
+	"project": 636698383859411630,
+	"status": "new",
+	"tantum": false,
+	"user": "puci",
+	"archived": false
+}
+2018-09-03T10:47:30.598094 @ puci retrieving password from device id: FA25BFDD-9F57-4393-A302-4B7E33C9D67F
+2018-09-03T10:47:30.62411 @ connected to MongoDB using user puci
+2018-09-03T10:47:30.62454 @ puci connected to mongo
+2018-09-03T10:47:30.624776 @ puci: syncing sessions
+2018-09-03T10:47:30.625617 @ puci: serverResponse: {"n":1,"ok":1}
+2018-09-03T10:47:30.625834 @ puci's' sessions synced
+2018-09-03T10:47:30.626183 @ puci: disconnected from MongoDB
+2018-09-03T10:47:30.626542 @ #### connection with 127.0.0.1:57231 terminated
+2018-09-03T10:49:16.100081 @ #### server received connection from 127.0.0.1:57274
+2018-09-03T10:49:16.100697 @ 127.0.0.1:57274 sent message: puci:1234@registerDevice@iPhone X@FA25BFDD-9F57-4393-A302-4B7E33C9D67F
+2018-09-03T10:49:16.126424 @ connected to MongoDB using user puci
+2018-09-03T10:49:16.127127 @ puci is registering a device with cryped id : S7anHq6AXBDYblpQ9VRaTg==
+2018-09-03T10:49:16.147949 @ puci device registered
+2018-09-03T10:49:16.14824 @ puci: disconnected from MongoDB
+2018-09-03T10:49:16.148507 @ #### connection with 127.0.0.1:57274 terminated
+2018-09-03T10:49:16.156358 @ #### server received connection from 127.0.0.1:57277
+2018-09-03T10:49:16.156849 @ 127.0.0.1:57277 sent message: puci:id:FA25BFDD-9F57-4393-A302-4B7E33C9D67F@get@projects
+2018-09-03T10:49:16.156995 @ puci retrieving password from device id: FA25BFDD-9F57-4393-A302-4B7E33C9D67F
+2018-09-03T10:49:16.177294 @ connected to MongoDB using user puci
+2018-09-03T10:49:16.177618 @ puci connected to mongo
+2018-09-03T10:49:16.177875 @ puci: retrieved projects info
+2018-09-03T10:49:16.178467 @ puci obtained projects from database
+2018-09-03T10:49:16.178768 @ server sent projects to puci
+2018-09-03T10:49:16.17903 @ puci: disconnected from MongoDB
+2018-09-03T10:49:16.179334 @ #### connection with 127.0.0.1:57277 terminated
+2018-09-03T10:49:16.183153 @ #### server received connection from 127.0.0.1:57279
+2018-09-03T10:49:16.183576 @ 127.0.0.1:57279 sent message: puci:id:FA25BFDD-9F57-4393-A302-4B7E33C9D67F@get@categories
+2018-09-03T10:49:16.183752 @ puci retrieving password from device id: FA25BFDD-9F57-4393-A302-4B7E33C9D67F
+2018-09-03T10:49:16.207777 @ connected to MongoDB using user puci
+2018-09-03T10:49:16.208153 @ puci connected to mongo
+2018-09-03T10:49:16.208319 @ puci: retrieved categories info
+2018-09-03T10:49:16.208745 @ puci obtained categories from database
+2018-09-03T10:49:16.20891 @ server sent categories to puci
+2018-09-03T10:49:16.209108 @ puci: disconnected from MongoDB
+2018-09-03T10:49:16.209337 @ #### connection with 127.0.0.1:57279 terminated
+2018-09-03T10:51:03.263113 @ #### server received connection from 127.0.0.1:57339
+2018-09-03T10:51:03.263729 @ 127.0.0.1:57339 sent message: puci:1234@registerDevice@iPhone X@FA25BFDD-9F57-4393-A302-4B7E33C9D67F
+2018-09-03T10:51:03.295401 @ connected to MongoDB using user puci
+2018-09-03T10:51:03.296222 @ puci is registering a device with cryped id : S7anHq6AXBDYblpQ9VRaTg==
+2018-09-03T10:51:03.320482 @ puci device registered
+2018-09-03T10:51:03.320804 @ puci: disconnected from MongoDB
+2018-09-03T10:51:03.321069 @ #### connection with 127.0.0.1:57339 terminated
+2018-09-03T10:51:03.330477 @ #### server received connection from 127.0.0.1:57342
+2018-09-03T10:51:03.331255 @ 127.0.0.1:57342 sent message: puci:id:FA25BFDD-9F57-4393-A302-4B7E33C9D67F@get@projects
+2018-09-03T10:51:03.33149 @ puci retrieving password from device id: FA25BFDD-9F57-4393-A302-4B7E33C9D67F
+2018-09-03T10:51:03.354379 @ connected to MongoDB using user puci
+2018-09-03T10:51:03.354628 @ puci connected to mongo
+2018-09-03T10:51:03.354836 @ puci: retrieved projects info
+2018-09-03T10:51:03.355261 @ puci obtained projects from database
+2018-09-03T10:51:03.355441 @ server sent projects to puci
+2018-09-03T10:51:03.35565 @ puci: disconnected from MongoDB
+2018-09-03T10:51:03.355981 @ #### connection with 127.0.0.1:57342 terminated
+2018-09-03T10:51:03.359212 @ #### server received connection from 127.0.0.1:57344
+2018-09-03T10:51:03.359692 @ 127.0.0.1:57344 sent message: puci:id:FA25BFDD-9F57-4393-A302-4B7E33C9D67F@get@categories
+2018-09-03T10:51:03.359899 @ puci retrieving password from device id: FA25BFDD-9F57-4393-A302-4B7E33C9D67F
+2018-09-03T10:51:03.380557 @ connected to MongoDB using user puci
+2018-09-03T10:51:03.380794 @ puci connected to mongo
+2018-09-03T10:51:03.381042 @ puci: retrieved categories info
+2018-09-03T10:51:03.381597 @ puci obtained categories from database
+2018-09-03T10:51:03.381806 @ server sent categories to puci
+2018-09-03T10:51:03.38209 @ puci: disconnected from MongoDB
+2018-09-03T10:51:03.382403 @ #### connection with 127.0.0.1:57344 terminated

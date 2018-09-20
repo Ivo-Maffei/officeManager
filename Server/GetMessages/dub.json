@@ -1,0 +1,9 @@
+{
+	"name": "getmessages",
+	"authors": [
+		"Ivo Maffei"
+	],
+	"description": "program to rediract messages from web to file",
+	"copyright": "Copyright © 2018, Ivo Maffei",
+	"license": "proprietary"
+}
