@@ -40,7 +40,7 @@ void main(string[] args){
 	import std.path: dirName;
 	
 	string here = dirName(thisExePath);
-	string config = here~"settings.conf";
+	string config = here~"/settings.conf";
 	
 	import std.json;
 	
