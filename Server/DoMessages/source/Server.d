@@ -48,7 +48,7 @@ class Server {
 				string flag = path~"accepted"~baseName(file.name);
 				if( !flag.exists) {
 					flag.write("1"); //accept connection
-					spawn(&handleConnection, file, host, flag);
+					spawn(&handleConnection, file, mongoHost, flag);
 				}
 			}
 		}
