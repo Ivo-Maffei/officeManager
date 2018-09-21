@@ -4,7 +4,7 @@ import std.concurrency: spawn;
 import core.thread: Thread;
 import std.datetime: dur;
 import std.file;
-import std.path;
+import std.regex;
 import Utility;
 import std.string;
 import MongoInteraction;
@@ -39,13 +39,14 @@ class Server {
 	private void listen() { //listen on port myPort
 		log("#### program is watching files in "~ path);
 		//ushort sleepCount = 0;
-		
+		auto exp = regex(r"connection([0-9])+\b");
 		while(true) {
 			Thread.getThis.sleep(dur!"seconds"(1));
 			//look for new files
 			auto entries = dirEntries(path,"connection*", SpanMode.shallow, false); //get all files starting with connection in the current directory (no subdirectories)
 			foreach( DirEntry file; entries) { //check if there the connections are already open
-				string flag = path~"accepted"~baseName(file.name);
+				if( matchFirst(file.name, exp).empty) continue; //if it doesn't match; then it's not a socket
+				string flag = file.name~"accepted";
 				if( !flag.exists) {
 					flag.write("1"); //accept connection
 					spawn(&handleConnection, file, mongoHost, flag);
