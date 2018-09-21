@@ -4,6 +4,7 @@ import std.concurrency: spawn;
 import core.thread: Thread;
 import std.datetime: dur;
 import std.file;
+import std.path;
 import Utility;
 import std.string;
 import MongoInteraction;
@@ -44,11 +45,10 @@ class Server {
 			//look for new files
 			auto entries = dirEntries(path,"connection*", SpanMode.shallow, false); //get all files starting with connection in the current directory (no subdirectories)
 			foreach( DirEntry file; entries) { //check if there the connections are already open
-				if(file.name[$-9 .. $] == "accepted") continue; //file is the acception file
-				string flag = file.name~"accepted";
+				string flag = path~"accepted"~baseName(file.name);
 				if( !flag.exists) {
 					flag.write("1"); //accept connection
-					//spawn(&handleConnection, file, host)
+					spawn(&handleConnection, file, host, flag);
 				}
 			}
 		}
@@ -58,10 +58,9 @@ class Server {
 		}
 	}	
 	
-	static private void handleConnection(const string file, const string host) {
+	static private void handleConnection(const string file, const string host, const string accepted) {
 	
 		string lock = file~"lock"; //lock path
-		string accepted = file~"accepted"; //accepted flag path
 	
 		while(true) {
 			if(lock.readText == thisProg) break; //my turn
