@@ -32,19 +32,19 @@ void sequentialTest() {
 	writeln("#### start sequential test");
 	
 	writeln("#### test: register device");
-	test("puci:1234@registerDevice@testDevice@TestDeviceID1234asd");
+	test("puci:1234@registerDevice@testDevice@FA25BFDD-9F57-4393-A302-4B7E33C9D67F");
 	writeln("##########################");
 	
 	writeln("#### test: get projects");
-	test("puci:id:TestDeviceID1234asd@get@projects");
+	test("puci:id:FA25BFDD-9F57-4393-A302-4B7E33C9D67F@get@projects");
 	writeln("##########################");
 	
 	writeln("#### test: get categories");
-	test("puci:id:TestDeviceID1234asd@get@categories");
+	test("puci:id:FA25BFDD-9F57-4393-A302-4B7E33C9D67F@get@categories");
 	writeln("##########################");
 	
 	writeln("#### test: new session with 2 sessions");
-	test(`puci:id:TestDeviceID1234asd@newSession@{
+	test(`puci:id:FA25BFDD-9F57-4393-A302-4B7E33C9D67F@newSession@{
     "_id": 636723674178855850,
     "archived": false,
     "category": "dummyCat",

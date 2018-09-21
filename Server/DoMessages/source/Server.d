@@ -158,6 +158,7 @@ class Server {
 					file.write("fail");
 					break;
 				}
+				log(user~" connected to MongoDB");
 				try {
 					auto dev = mongo.getDevices();
 					updateDevices(dev);
@@ -166,7 +167,7 @@ class Server {
 					file.write("fail");
 					break;
 				}
-				
+				log("#### updated devices list");
 				
 				//get local file of devices and update this one as well if update of MongoDB goes well
 				try {
@@ -199,6 +200,8 @@ class Server {
 		import crypto.aes: AES256, AESUtils;
 		import std.base64: Base64;
 		
+		log(user~" crypting new device");
+		
 		//log("#### crypting " ~ pass ~ "OK");
 		//log("#### device is "~ device);
 		//crypt password using device as key
@@ -223,6 +226,7 @@ class Server {
 		
 		write(file, json.toPrettyString);
 		
+		log(user~" crypting done");
 		return stored;
 	}
 	
