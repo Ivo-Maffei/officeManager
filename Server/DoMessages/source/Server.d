@@ -44,6 +44,7 @@ class Server {
 			//look for new files
 			auto entries = dirEntries(path,"connection*", SpanMode.shallow, false); //get all files starting with connection in the current directory (no subdirectories)
 			foreach( DirEntry file; entries) { //check if there the connections are already open
+				if(file.name[$-9 .. $] == "accepted") continue; //file is the acception file
 				string flag = file.name~"accepted";
 				if( !flag.exists) {
 					flag.write("1"); //accept connection
@@ -104,6 +105,10 @@ class Server {
 				JSONValue[] list = [];
 				if(args == "projects") list = mongo.getProjects();
 				else if (args == "categories")  list = mongo.getCategories();
+				else {
+					log(user ~" asked for unknown argument "~args);
+					file.write("fail");
+				}
 				log(user ~ " obtained "~ args ~ " from database");
 				
 				string result = "";
@@ -136,7 +141,7 @@ class Server {
 				log(user ~ " connected to mongo");
 				
 				mongo.syncSessions(args);
-				log(user ~ "'s' sessions synced");
+				log(user ~ "'s sessions synced");
 				file.write("\n");
 				break;
 			case "registerDevice": //user:password@registerDevice@deviceName@deviceID

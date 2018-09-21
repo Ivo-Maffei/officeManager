@@ -663,13 +663,16 @@ void newSessionUI ( ref Window window, string dateTime, string duration) {
 	
 	loadState( projSelect, categories, users);
 	
-	if(dateTime !is null) {
-		year.selectedItemIndex = to!int(dateTime[0 .. 4]) -2018;
-		month.selectedItemIndex = to!int(dateTime[5 .. 7]) -1;
-		day.selectedItemIndex = to!int(dateTime[8 .. 10]) -1;
-		hour.selectedItemIndex = to!int(dateTime[11 .. 13]);
-		min.selectedItemIndex = to!int(dateTime[14 .. 16]);
-	}
+	import std.datetime.systime: Clock;
+	
+	if(dateTime is null) dateTime = Clock.currTime.toISOExtString;
+	
+	year.selectedItemIndex = to!int(dateTime[0 .. 4]) -2018;
+	month.selectedItemIndex = to!int(dateTime[5 .. 7]) -1;
+	day.selectedItemIndex = to!int(dateTime[8 .. 10]) -1;
+	hour.selectedItemIndex = to!int(dateTime[11 .. 13]);
+	min.selectedItemIndex = to!int(dateTime[14 .. 16]);
+	
 	if(duration !is null) {
 		hour2.selectedItemIndex = to!int(duration[0 .. 2]);
 		min2.selectedItemIndex = to!int(duration[3 .. 5]);

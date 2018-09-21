@@ -34,7 +34,7 @@ class Server {
 	}
 
 	private void listen() { //listen on port myPort
-		auto address = getAddress("localhost", port)[0];
+		auto address = getAddress("0.0.0.0", port)[0];
 		auto socket = new Socket(address.addressFamily, SocketType.STREAM, ProtocolType.TCP);
 		socket.blocking = true;
 		socket.bind(address);//listen on this port
