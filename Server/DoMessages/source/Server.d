@@ -224,7 +224,7 @@ class Server {
 		write(file, json.toPrettyString);
 		
 		log(user~" crypting done");
-		return stored;
+		return crypted;
 	}
 	
 	static private string getPasswordFromId(const string user, const string device) {
@@ -238,9 +238,9 @@ class Server {
 		//log("#### devices json "~json.toString);
 		foreach(ref j ; json[user].array ) {
 			auto str = j.str;
-			
+			string pass = "fail"; //anything that does not end with "OK"
 			try{
-				string pass = AESdecrypt(device, str);
+				pass = AESdecrypt(device, str);
 			} catch (Exception e) {
 				log(user ~" problem decrypting: "~e.msg); //likely that pad is wrong because password is wrong
 				continue;
