@@ -1,6 +1,7 @@
 module Crypt;
 import std.stdio;
 import std.format: format;
+import std.base64;
 
 string AESencrypt(const string password, const string plaintext) {
 	auto aes = new AES(password);
@@ -327,7 +328,6 @@ private class AES {
 	}
 	
 	string encrypt(const string plaintext) {
-		
 		ulong bytes = plaintext.length; //n° of bytes in the input
 		const ushort pad = 16 - (bytes % 16); //pad to apply (always put 1)
 		bytes += pad; //bytes should be a multiple of 16 (always add padding)
@@ -372,21 +372,20 @@ private class AES {
 			//writeln("done block ", blockN+1);
 		}
 	
-		string cipher = "";
-		for(int i=0; i<bytes; ++i){
-			cipher ~= cast(char)(result[i]);
-		}
+		string cipher = Base64.encode(result); //result is now UTF-8
 		return cipher;
 	}
 	
 	string decrypt(const string ciphertext){
 	
-		const ulong bytes = ciphertext.length;
+		//first decode from base64
+		ubyte[] input = Base64.decode(ciphertext);
+		const ulong bytes = input.length;
 		//writeln("bytes to decrypt: ",bytes);
 		
 		ubyte[] data = new ubyte[bytes];
 		for(int i=0; i<bytes; ++i){
-			data[i] = cast(ubyte) (ciphertext[i]); //data to descrypt
+			data[i] = input[i]; //data to descrypt
 		}
 		
 		const ulong blocks = bytes / 16; //n° of blocks 

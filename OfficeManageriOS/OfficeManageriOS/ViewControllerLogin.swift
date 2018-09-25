@@ -21,6 +21,13 @@ class ViewControllerLogin: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        do {
+            try User.initialise()
+        } catch {
+            let alert = UIAlertController(title: "Initialization Error", message: "There was a problem during the startup.\nError: " + error.localizedDescription, preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "OK", style: .cancel, handler: nil))
+            self.present(alert, animated: true)
+        }
         deviceIDLable.text = "DeviceId:\n" + User.id.description
         if(!User.needRegister) {
             print("going to main view")
