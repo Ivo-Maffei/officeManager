@@ -14,8 +14,8 @@ class User {
     static var id : UUID = UUID()
     static var user : String = "@@none@@"
     static var needRegister : Bool = true
-    static var host : String = "127.0.0.1"
-    static var port : Int32 = 27017
+    static var host : String = "79.2.254.77"
+    static var port : Int32 = 27018
     
     static func initialise()  throws {//get device id
         let thisDevice = UIDevice.current
@@ -28,9 +28,36 @@ class User {
             print(id.description)
             break;
         }
-        var path = getResourcesPath()
-        path = path.appendingPathComponent("device")
-    
+        
+        //check that all file exists; otherwise create
+        let fileManager = FileManager.default
+        do{
+        var pathString = getResourcesPath().appendingPathComponent("device.data").path
+        if(!(fileManager.fileExists(atPath: pathString))) {
+            try user.write(toFile: pathString, atomically: false ,encoding: String.Encoding.utf8)
+        }
+        pathString = getResourcesPath().appendingPathComponent("settings.data").path
+        if(!(fileManager.fileExists(atPath: pathString))) {
+//            fileManager.createFile(atPath: pathString, contents: data, attributes: nil)
+            try ("host:" + host + "\nport:" + String(port)).write(toFile:pathString, atomically: false ,encoding: String.Encoding.utf8)
+        }
+        pathString = getResourcesPath().appendingPathComponent("Categories.db").path
+        if(!(fileManager.fileExists(atPath: pathString))) {
+            try "\n".write(toFile: pathString, atomically: false, encoding: String.Encoding.utf8)
+        }
+        pathString = getResourcesPath().appendingPathComponent("Projects.db").path
+        if(!(fileManager.fileExists(atPath: pathString))) {
+            try "\n".write(toFile: pathString, atomically: false, encoding: String.Encoding.utf8)
+        }
+        pathString = getResourcesPath().appendingPathComponent("SessionsSync.db").path
+        if(!(fileManager.fileExists(atPath: pathString))) {
+            try "\n".write(toFile: pathString, atomically: false, encoding: String.Encoding.utf8)
+        }
+        } catch{
+            throw LoginError.DeviceFileError(error.localizedDescription)
+        }
+        
+        var path = getResourcesPath().appendingPathComponent("device.data")
         do {
             let data = try Data(contentsOf: path, options: .mappedIfSafe)
             user = String(data: data, encoding: String.Encoding.utf8)!
@@ -45,7 +72,7 @@ class User {
             needRegister = false;
         }
         
-        path = getResourcesPath().appendingPathComponent("settings")
+        path = getResourcesPath().appendingPathComponent("settings.data")
         do {
             let str = try String(data: Data(contentsOf: path, options: .mappedIfSafe), encoding: String.Encoding.utf8)!
             let newLine = str.firstIndex(of: Character("\n"))!
@@ -58,6 +85,7 @@ class User {
             print(host)
             print(port)
         } catch {
+            print("can't write to settings file", error.localizedDescription)
             throw LoginError.SettingsFileError(error.localizedDescription)
         }
     }
@@ -74,10 +102,11 @@ class User {
             throw LoginError.ServerError("Server replyied with fail")
         } else {
             User.user = myUser;
-            let path = getResourcesPath().appendingPathComponent("device")
+            let path = getResourcesPath().appendingPathComponent("device.data")
             do {
                 try myUser.write(to: path, atomically: false, encoding: String.Encoding.utf8)
             } catch {
+                print("can't write to device file", error.localizedDescription)
                 throw LoginError.DeviceFileError(error.localizedDescription)
             }
             needRegister = false

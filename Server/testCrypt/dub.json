@@ -1,0 +1,9 @@
+{
+	"name": "crypt",
+	"authors": [
+		"Ivo Maffei"
+	],
+	"description": "test for crypt module",
+	"copyright": "Copyright © 2018, Ivo Maffei",
+	"license": "proprietary"
+}

@@ -9,9 +9,17 @@
 import Foundation
 
 func getResourcesPath() -> URL {
-    let path = Bundle.main.bundleURL
+    var path = FileManager().urls(for: .documentDirectory, in: .userDomainMask).first!
+    path = path.appendingPathComponent("data")
+    let fileM = FileManager.default
+    if(!(fileM.fileExists(atPath: path.path))) {
+        do {
+            try fileM.createDirectory(at: path, withIntermediateDirectories: true, attributes: nil)
+        } catch {
+            print(error.localizedDescription)
+        }
+    }
     return path
-    
 }
 
 func getProjects() throws -> [String]   {

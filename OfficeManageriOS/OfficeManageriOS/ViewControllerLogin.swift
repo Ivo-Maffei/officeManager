@@ -23,6 +23,7 @@ class ViewControllerLogin: UIViewController {
         super.viewDidLoad()
         deviceIDLable.text = "DeviceId:\n" + User.id.description
         if(!User.needRegister) {
+            print("going to main view")
             //set a timer so the function is triggered after we exit viewDidLoad()
             Timer.scheduledTimer(withTimeInterval: 0.5, repeats: false, block: { (t) in
                 self.performSegue(withIdentifier: "ToMainUI", sender: self)

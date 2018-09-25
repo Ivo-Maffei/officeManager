@@ -34,6 +34,7 @@ class ViewController: UIViewController , UIPickerViewDelegate, UIPickerViewDataS
     // MARK: - Methods of super classes
     override func viewDidLoad() {
         super.viewDidLoad()
+        print("loading normail view")
         // Do any additional setup after loading the view, typically from a nib.
         do {
             projects = try getProjects()

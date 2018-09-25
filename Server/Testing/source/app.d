@@ -87,13 +87,13 @@ void worker (const string message, const string id) {
 void parallelTest() {
 	writeln("#### start parallel test");
 	
-	spawn(&worker, "puci:1234@registerDevice@testDevice@TestDeviceID1234asd", "register device");
+	spawn(&worker, "puci:1234@registerDevice@testDevice@FA25BFDD-9F57-4393-A302-4B7E33C9D67F", "register device");
 	
-	spawn(&worker, "puci:id:TestDeviceID1234asd@get@projects", "get projects");
+	spawn(&worker, "puci:id:FA25BFDD-9F57-4393-A302-4B7E33C9D67F@get@projects", "get projects");
 	
-	spawn(&worker, "puci:id:TestDeviceID1234asd@get@categories", "get categories");
+	spawn(&worker, "puci:id:FA25BFDD-9F57-4393-A302-4B7E33C9D67F@get@categories", "get categories");
 	
-	spawn(&worker, `puci:id:TestDeviceID1234asd@newSession@{
+	spawn(&worker, `puci:id:FA25BFDD-9F57-4393-A302-4B7E33C9D67F@newSession@{
     "_id": 636723674178855850,
     "archived": false,
     "category": "dummyCat",

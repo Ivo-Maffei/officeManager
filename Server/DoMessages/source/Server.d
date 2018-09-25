@@ -197,17 +197,14 @@ class Server {
 	static private const(string) newDevice(const string user, const string pass, const string device) { //return string to put on database
 		import std.file: readText, write, thisExePath;
 		import std.path: dirName;
-		import crypto.aes: AES256, AESUtils;
-		import std.base64: Base64;
+		import Crypt;
 		
 		log(user~" crypting new device");
 		
 		//log("#### crypting " ~ pass ~ "OK");
 		//log("#### device is "~ device);
-		//crypt password using device as key
-		ubyte[] secret = cast(ubyte[]) (pass~"OK");
-		ubyte[] crypted = AESUtils.encrypt!AES256(secret, device);
-		const string stored = Base64.encode(crypted); //this is what should be stored
+		//crypt password~"OK" using device as key
+		string crypted = AESencrypt(device,pass~"OK");
 		//log("#### result is " ~ stored);
 		auto file = dirName(thisExePath) ~ "/devices.db";
 		auto json = parseJSON(readText(file));
@@ -219,9 +216,9 @@ class Server {
 	
 		auto arr = json[user].array;
 		foreach (ref j ; arr) {
-			if( device == j.str) return stored; //no need to add to local file
+			if( crypted == j.str) return crypted; //no need to add to local file
 		}
-		arr ~= JSONValue(stored);
+		arr ~= JSONValue(crypted);
 		json[user] = arr;
 		
 		write(file, json.toPrettyString);
@@ -233,28 +230,21 @@ class Server {
 	static private string getPasswordFromId(const string user, const string device) {
 		import std.file: readText, thisExePath;
 		import std.path: dirName;
-		import crypto.aes: AES256, AESUtils;
-		import std.base64: Base64;
+		import Crypt;
 		
 		auto file = dirName(thisExePath) ~ "/devices.db";
 		auto json = parseJSON(readText(file));
+		
 		//log("#### devices json "~json.toString);
 		foreach(ref j ; json[user].array ) {
 			auto str = j.str;
-			//log("#### crypted string : " ~ str);
-			ubyte[] crypted = Base64.decode(str);
-			//log("#### crypted bytes received");
-			ubyte[] decrypted;
-			try {
-				AES256 aes = new AES256(cast(ubyte[])(device));
-				//log("#### aes object initialised");
-				decrypted = aes.decrypt(crypted);
-			} catch(Exception e) {
-				log("#### problem decrypting; " ~ to!string(e.msg));
+			
+			try{
+				string pass = AESdecrypt(device, str);
+			} catch (Exception e) {
+				log(user ~" problem decrypting: "~e.msg); //likely that pad is wrong because password is wrong
+				continue;
 			}
-			//log("#### decryption done");
-			string pass = cast (string) (decrypted);
-			//log("#### decrypted string: " ~ pass);
 			if(pass[$-2 .. $] == "OK") { //then we are good
 				return pass[0 .. $-2];
 			}

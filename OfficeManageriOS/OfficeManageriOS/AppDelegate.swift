@@ -19,7 +19,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         do {
             try User.initialise()
         } catch {
-            //problem with files
+            print(error.localizedDescription)
+            return false
         }
         
         return true
