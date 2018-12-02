@@ -23,7 +23,17 @@ public:
 		this.changeColor(color); //check and change color
 		this._Cost_Feriale = feriale;
 		this._Cost_Festivo = festivo;
-		categories ~= this;
+		
+		//insert new object in order according to jobNumber
+		import std.array: insertInPlace;
+		int i =0;
+		for( ; i < categories.length; ++i) {
+			if(categories[i].name >= this.name){ //then insert at position i
+				categories.insertInPlace(i,this);
+				break;
+			}
+		}
+		if(i == categories.length) categories ~= this;
 	}
 	
 	//delete a category

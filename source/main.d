@@ -1,10 +1,12 @@
 import Local: Local; //everything should be done via Local or GUI
-import dlangui;
+public import dlangui;
 import UIActionHandlers;
 
 //import std.stdio;
 
 mixin APP_ENTRY_POINT;
+
+immutable string versionString = "1.01 debug-(28-9-18)";
 
 /// entry point for dlangui based application
 extern (C) int UIAppMain(string[] args) {
@@ -136,9 +138,9 @@ void normalUI(ref Window window) { //create UI for normal use
     //create status bar-------------------------------------------------------------------
     auto sbar = new StatusLine();
     sbar.id ="sbar";
-    sbar.minHeight = 25;
-  	auto sbarText = new TextWidget("sbarText", "status line prova"d);
-  	sbarText.fontSize = 21;
+    //sbar.minHeight = 25;
+  	auto sbarText = new TextWidget("sbarText", "Versione: "d~to!dstring(versionString));
+  	//sbarText.fontSize = 21;
   	sbar.addChild(sbarText);
   	//------------------------------------------------------------------------------------
   	
@@ -150,15 +152,15 @@ void normalUI(ref Window window) { //create UI for normal use
     
     //create buttons----------------------------------------------------------------------
     auto playbtn = new Button("playbtn", "Start Session"d);
-    playbtn.fontSize = 30;
+    //playbtn.fontSize = 30;
     auto sessionbtn = new Button("sessionbtn", "New Session"d);
-    sessionbtn.fontSize = 30;
+    //sessionbtn.fontSize = 30;
     auto projbtn = new Button("projbtn", "New Project"d);
-    projbtn.fontSize = 30;
+    //projbtn.fontSize = 30;
     auto catbtn = new Button("catbtn", "New Category"d);
-    catbtn.fontSize = 30;
+    //catbtn.fontSize = 30;
     auto repobtn = new Button("repobtn", "Create Report"d);
-    repobtn.fontSize = 30;
+    //repobtn.fontSize = 30;
     //------------------------------------------------------------------------------------
     
     
@@ -178,8 +180,8 @@ void normalUI(ref Window window) { //create UI for normal use
     
     //create dropdown selection-----------------------------------------------------------
    	auto projbox = new ComboBox("projdd");
-   	projbox.minHeight = 50;
-   	projbox.minWidth= 200;
+   //	projbox.minHeight = 50;
+   //	projbox.minWidth= 200;
    	projbox.text ="select project";
    	dstring[] projList;
    	foreach(ref pr ; Local.getProjects()) {
@@ -191,8 +193,8 @@ void normalUI(ref Window window) { //create UI for normal use
    	projbox.items = projList ~"Any"d;
    	
    	auto catbox = new ComboBox("catdd");
-   	catbox.minHeight = 50;
-   	catbox.minWidth= 200;
+   	//catbox.minHeight = 50;
+   	//catbox.minWidth= 200;
    	catbox.text = "select category";
    	dstring[] catList;
    	foreach(ref cat ; Local.getCategories()) {
@@ -201,8 +203,8 @@ void normalUI(ref Window window) { //create UI for normal use
    	catbox.items = catList ~ "Any"d;
    	
    	auto userbox = new ComboBox("userdd");
-   	userbox.minHeight = 50;
-   	userbox.minWidth= 200;
+   	//userbox.minHeight = 50;
+   	//userbox.minWidth= 200;
    	userbox.text = "select user";
    	dstring[] userList;
    	if(Local.isUserAdmin) {
@@ -224,7 +226,7 @@ void normalUI(ref Window window) { //create UI for normal use
    	}
    	
    	auto filterbtn = new Button("filterbtn", "Aggiorna tabella"d);
-   	filterbtn.fontSize = 20;
+   	//filterbtn.fontSize = 20;
    	
    	auto sessionEditLine = new EditLine("sesDescriptionEditLine");
    	
@@ -259,7 +261,7 @@ void normalUI(ref Window window) { //create UI for normal use
    	for(int i =0; i< grid.rows; ++i) {
    		grid.setRowTitle(i,to!dstring(i+1));
    	}
-   	grid.fontSize = 30;
+   	//grid.fontSize = 30;
    	grid.autoFitColumnWidths();
    	grid.autoFitRowHeights();
    	//------------------------------------------------------------------------------------
@@ -717,6 +719,7 @@ void newCategoryUI(ref Window window) {
 	t.addChild(annulla);
 
 	window.mainWidget = v;
+	
 }
 
 void editSessionUI (ref Window window, const ulong sessionID) {

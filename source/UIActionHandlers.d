@@ -1,4 +1,4 @@
-import dlangui;
+//import dlangui;
 import main; //here are UI function
 import Local: Local;
 import std.conv: to;
@@ -1227,7 +1227,7 @@ class InactivityWidget {
 		//writeln("#################################### onTimer");
 		if(first)  {
 			first = false;
-			stopBtn.simulateClick();//this stops the session
+			Local.pauseSession(sessionID);
 			//Local.stopSession(sessionID);
 			msg = new MessageBox(UIString.fromRaw("Inattività"d), UIString.fromRaw("Sei stato inattivo per 1 minuto. Cosa vuoi fare con questo tempo?"d), win,
 				[new Action(1,"Crea nuova sessione"d), new Action(2,"Tieni questo tempo nella sessione ora attiva"d), new Action(3,"Ignora questo tempo"d)], 0,
@@ -1245,10 +1245,12 @@ class InactivityWidget {
 					switch(result.id) {
 					
 						case 1:
+							stopBtn.simulateClick();
+							
 							import std.datetime.systime : SysTime, Clock;
 							import core.time: dur;
 							SysTime currentTime = Clock.currTime() - dur!"minutes"(time);
-							
+	
 							ushort hours, minutes;
 							minutes = time;
 							hours = minutes /60;
@@ -1281,19 +1283,18 @@ class InactivityWidget {
 							newDuration ~= ":";
 							if(minutes < 10) newDuration ~= "0" ~ to!string(minutes);
 							else newDuration ~= to!string(minutes);
-							Local.editSession(sessionID,0, null,null, newDuration );
+							Local.editSession(sessionID, Local.getCurrentUser,0, null,null, newDuration );
 							
-							//now update the grid
+							/*//now update the grid
 							if( grid !is null) {
 								//writeln("################################ updating grid");
 								//writeln("################################ grid.rows : ", grid.rows);
 								grid.setCellText(1,grid.rows-1, to!dstring(newDuration));
-							}
+							}*/
 							
-							break;
-					
+							//fall to case 3					
 						case 3:
-							//fai niente
+							Local.resumeSession(sessionID); //start the watch again
 							break;
 						default:
 							throw new Exception("unknown action in reply to message box");

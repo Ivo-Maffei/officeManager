@@ -342,9 +342,36 @@ static: //this makes the all the member static
 		return session.ID;
 	}
 	
-	//stop a Session and update its duration
-	void stopSessionByProject(const ulong projID) { //only 1 active session for project
+	//pause a session
+	void pauseSessionByProject(const ulong projID){
+		//find tuple and its position
+		Tuple!(Session, StopWatch) myTuple;
+		size_t index =0;
+		foreach( ref tup; activeSessions) {
+			if(tup[0].projectID == projID) {
+				myTuple = tup;
+				break;
+			}
+			++index;
+		}
+		if (index == activeSessions.length) { //if we found nothing
+			throw new Exception("trying to pause a non existing session (or not active)");
+		}
 		
+		myTuple[1].stop(); //stop the time (do not reset it though)
+		
+	}
+	void pauseSession(const ulong sessionID, const string user = Login.getUser()){
+		auto session = findSession(sessionID, user);
+		pauseSessionByProject(session.projectID);
+	}
+	void pauseSession(Session session) {
+		pauseSessionByProject(session.projectID);
+	}
+	
+	//resume a session
+	//pause a session
+	void resumeSessionByProject(const ulong projID){
 		//find tuple and its position
 		Tuple!(Session, StopWatch) myTuple;
 		size_t index =0;
@@ -359,7 +386,35 @@ static: //this makes the all the member static
 			throw new Exception("trying to stop a non existing session (or not active)");
 		}
 		
-		myTuple[1].stop(); //stop the time
+		myTuple[1].start();
+		
+	}
+	void resumeSession(const ulong sessionID, const string user = Login.getUser()){
+		auto session = findSession(sessionID, user);
+		resumeSessionByProject(session.projectID);
+	}
+	void resumeSession(Session session) {
+		resumeSessionByProject(session.projectID);
+	}
+	
+	//stop a Session and update its duration
+	void stopSessionByProject(const ulong projID) { //only 1 active session for project
+		
+		//find tuple and its position
+		Tuple!(Session, StopWatch) myTuple;
+		size_t index =0;
+		foreach( ref tup; activeSessions) {
+			if(tup[0].projectID == projID) {
+				myTuple = tup;
+				break;
+			}
+			++index;
+		}
+		if (index == activeSessions.length) { //if we found nothing
+			throw new Exception("trying to pause a non existing session (or not active)");
+		}
+		
+		myTuple[1].stop(); //stop the time (do not reset it though)
 		auto watch = myTuple[1];
 		
 		import std.conv: to;
